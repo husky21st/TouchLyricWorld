@@ -1,6 +1,7 @@
 import type { NextPage } from "next";
 import dynamic from "next/dynamic";
-import Head from "next/Head";
+import Head from "next/head";
+
 import WebFontPreloading from "components/WebFontPreloading";
 
 const MyCanvasWithNoSSR = dynamic(
