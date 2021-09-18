@@ -2,6 +2,8 @@ import { Container, Graphics, BitmapText, InteractionEvent } from 'pixi.js';
 import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
 import { GameMenuScene } from 'libs/scenes/GameMenuScene';
+//for develop
+import { GameScene } from 'libs/scenes/GameScene';
 
 let resizeTimer: number = 0;
 const resizeCheck = (): void => {
@@ -65,7 +67,7 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
     window.removeEventListener('resize', resizeCheck);
     gsap.to(this, {
       pixi: {alpha: 0}, duration: 0.8,
-      onComplete: () => Manager.changeScene(new GameMenuScene()),
+      onComplete: () => Manager.changeScene(new GameScene()),
     });
   }
 

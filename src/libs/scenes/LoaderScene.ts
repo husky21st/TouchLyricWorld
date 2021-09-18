@@ -5,6 +5,8 @@ import { assets } from 'libs/asset/assets';
 import { IScene, Manager } from 'libs/manages/Manager';
 import { SuggestLandscapeModeScene } from 'libs/scenes/SuggestLandscapeModeScene';
 import { GameMenuScene } from 'libs/scenes/GameMenuScene';
+//for develop
+import { GameScene } from 'libs/scenes/GameScene';
 
 export class LoaderScene extends Container implements IScene {
   private loadingFlower: Container;
@@ -91,10 +93,10 @@ export class LoaderScene extends Container implements IScene {
   private changeScene() {
     const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-    if (screenWidth < screenHeight || true) {
+    if (screenWidth < screenHeight) {
       Manager.changeScene(new SuggestLandscapeModeScene());
     } else {
-      Manager.changeScene(new GameMenuScene());
+      Manager.changeScene(new GameScene());
     }
   }
 
