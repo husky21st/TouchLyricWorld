@@ -12,6 +12,10 @@ class MyDocument extends Document {
         <Head>
           <meta charSet="UTF-8" />
           <meta name="theme-color" content="#039393" />
+          <link
+            href="https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap"
+            rel="stylesheet"
+          />
         </Head>
         <body>
           <Main />
