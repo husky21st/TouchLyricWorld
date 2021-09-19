@@ -14,7 +14,7 @@ const resizeCheck = (): void => {
     const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
     Manager._onResize(screenWidth, screenHeight);
-  }, 500);
+  }, 300);
 }
 
 export class SuggestLandscapeModeScene extends Container implements IScene {
@@ -66,7 +66,7 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
   private goGameMenuScene(): void {
     window.removeEventListener('resize', resizeCheck);
     gsap.to(this, {
-      pixi: {alpha: 0}, duration: 0.8,
+      pixi: {alpha: 0}, duration: 0.5,
       onComplete: () => Manager.changeScene(new GameScene()),
     });
   }

@@ -14,6 +14,10 @@ export class Manager {
   //private static _scaleRatioX: number;
   //private static _scaleRatioY: number;
 
+  public static isSafari: boolean;
+  public static _song: string;
+
+  //getter
   public static get width(): number {
     return Manager._width;
   }
@@ -77,26 +81,25 @@ export class Manager {
   private static ManagerInitSetting(): void {
     const _userAgent: string = window.navigator.userAgent.toLowerCase();
     console.log(_userAgent);
-    let checkwebgl2: boolean = true;
+    this.isSafari = false;
     if (_userAgent.indexOf('edge') != -1) {
       console.log('use Edge');
     } else if (_userAgent.indexOf('chrome') != -1) {
       console.log('use Google Chrome');
     } else if (_userAgent.indexOf('safari') != -1) {
       console.log('use Safari');
-      checkwebgl2 = false;
+      this.isSafari = true;
     } else if (_userAgent.indexOf('firefox') != -1) {
       console.log('use FireFox');
     } else if (_userAgent.indexOf('opera') != -1) {
       console.log('use Opera');
     } else {
       console.log('undefined');
-      checkwebgl2 = false;
+      this.isSafari = true;
     }
-    if (!checkwebgl2) {
+    if (this.isSafari) {
       PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL;
     }
-    console.log('ENVIRONMENT', PIXI.settings.PREFER_ENV);
   }
 
   //resize Event
@@ -112,7 +115,7 @@ export class Manager {
     //for ios safari
     setTimeout(() => {
       window.scrollTo(0, 1);
-    }, 500);
+    }, 200);
   }
 
   //public static resizeToFullscreen(): void {
@@ -169,7 +172,12 @@ export class Manager {
       Manager.currentScene.destroy();
     }
     Manager.currentScene = newScene;
+    Manager.currentScene.alpha = 0;
     Manager.app.stage.addChild(Manager.currentScene);
+    gsap.to(Manager.currentScene, {
+      pixi: { alpha: 1 },
+      duration: 0.3,
+    });
   }
 
   private static update(): void {
