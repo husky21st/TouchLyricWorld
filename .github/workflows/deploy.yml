@@ -8,6 +8,8 @@ on:
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
+    env:
+      NEXT_PUBLIC_API_TOKEN:${{ secrets.PUBLIC_API_TOKEN}}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v2
@@ -19,11 +21,6 @@ jobs:
           key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-node-
-      - name: Create dot env file
-      - shell: bash
-        run: |
-          touch .env
-          echo "NEXT_PUBLIC_API_TOKEN = ${{ secrets.PUBLIC_API_TOKEN}}" >> .env
       - name: Install Dependencies
         run: npm install
       - name: Build
