@@ -15,6 +15,8 @@ export class Manager {
   //private static _scaleRatioY: number;
 
   public static isSafari: boolean;
+  //for TextAliveApp
+  public static _media: HTMLElement;
   public static _song: string;
 
   //getter
@@ -40,7 +42,7 @@ export class Manager {
   //  return Manager._scaleRatioY;
   //}
 
-  public static initialize(canvas: HTMLCanvasElement, width: number, height: number): void {
+  public static initialize(canvas: HTMLCanvasElement, mediaElement: HTMLDivElement, width: number, height: number): void {
     console.log('Manager_init');
     // store our width and height
     Manager._width = width;
@@ -48,24 +50,25 @@ export class Manager {
     //Manager._scaleRatioX = 1;
     //Manager._scaleRatioY = 1;
 
+    
     // Create our pixi app
     Manager.app = new PIXI.Application({
       view: canvas,
       resolution: window.devicePixelRatio || 1,
       backgroundColor: 0xf8fcfb,
-      autoDensity: false, //cssで適用済み
+      autoDensity: false, //apply in css file
       antialias: true,
       width: width,
       height: height,
     });
-
-    //gsapプラグイン登録
+    
+    //plugin entry for gsap
     gsap.registerPlugin(PixiPlugin);
     PixiPlugin.registerPIXI(PIXI);
-
+    
     //pixi-webfont-loader
     PIXI.Loader.registerPlugin(WebfontLoaderPlugin);
-
+    
     // Add the ticker
     Manager.app.ticker.stop();
     gsap.ticker.fps(60);
@@ -73,7 +76,9 @@ export class Manager {
       Manager.app.ticker.update();
     });
     Manager.app.ticker.add(Manager.update);
-
+    
+    Manager._media = mediaElement as HTMLElement;
+    
     Manager.ManagerInitSetting();
   }
 

@@ -33,7 +33,14 @@ canvas {
   top: 5%;
   left: 50%;
   margin-right: -50%;
+  transform-origin: top left;
+  /*transform: translate(-50%, 0%);*/
   z-index: 20;
+}
+
+#media>div>div {
+  width: 25.6vw !important;
+  height: 14.4vw !important;
 }
 
 #webfontPreloading {

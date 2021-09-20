@@ -4,19 +4,21 @@ import { LoaderScene } from 'libs/scenes/LoaderScene';
 
 const MyCanvas: VFC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const mediaRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    const media = mediaRef.current;
+    if (!canvas || !media) return;
     const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
     const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-    Manager.initialize(canvas, screenWidth, screenHeight);
+    Manager.initialize(canvas, media, screenWidth, screenHeight);
     const loady: LoaderScene = new LoaderScene();
     Manager.changeScene(loady);
-  }, [canvasRef]);
+  }, [canvasRef, mediaRef]);
   return (
     <>
       <canvas ref={canvasRef} />
-      <div id="media" />
+      <div ref={mediaRef} id='media' />
     </>
   );
 };
