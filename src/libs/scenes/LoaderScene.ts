@@ -78,10 +78,9 @@ export class LoaderScene extends Container implements IScene {
       },
       {
         resolution: 4,
-        chars: [
+        chars:
           Loader.shared.resources['fontText'].data.required.join('') +
-          Loader.shared.resources['fontText'].data.text.join('')
-        ],
+          Loader.shared.resources['fontText'].data.text.join(''),
       },
     );
   }
