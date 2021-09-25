@@ -369,6 +369,7 @@ export class MoveLyricText {
   private readonly basedHeight: number = 1080;
   private readonly W: number = Manager.width;
   private readonly H: number = Manager.height;
+  private readonly TR: number = Manager.textScale;
   //private readonly WtoW: number = Manager.width; // change ratio
   private readonly WtoH: number = Manager.height * this.basedWidth / this.basedHeight; // change ratio
   constructor() {}
@@ -403,7 +404,7 @@ export class MoveLyricText {
     const phraseText: Text = phraseTextBox.TextBox;
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
-    phraseText.position.set(this.W * 0.5, this.H * 0.38);
+    phraseText.position.set(this.W * 0.5, this.H * 0.39);
     const textTL: gsap.core.Timeline = gsap.timeline();
     phraseText.visible = true;
     textTL
@@ -416,9 +417,9 @@ export class MoveLyricText {
       })
       .to(phraseText, {
         pixi: {
-          y: '-=' + this.H * 0.05,
-          scale: 0.4,
-          alpha: 0.5
+          y: '-=' + this.H * 0.07,
+          scale: this.TR * 0.7,
+          alpha: 0.2
         },
         duration: beatDuration / 1000,
         delay: ( Duration - beatDuration ) / 1000
