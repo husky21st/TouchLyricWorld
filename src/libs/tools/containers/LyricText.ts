@@ -20,25 +20,41 @@ export class LyricText extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
     //decide place number
-    const numberOfPhrase: number = video.findIndex(video.lastPhrase) + 1;
-    console.log('c', numberOfPhrase);
-    const placeNumbers: Array<number> = new Array(numberOfPhrase);
-    for (let i = 0; i < numberOfPhrase; i++) {
-      let place: number = getRandomInt(4); //0, 1, 2, 3
+    const max28up: Array<number> = [0, 1, 10, 11, 20, 21, 30, 31, 40, 50, 60, 70, 80, 90]; // 17 ~
+    const max16up: Array<number> = max28up.concat([2, 3, 12, 13, 22, 23, 32, 33, 41, 42, 51, 52, 61, 71, 81, 91]); // 11 ~ 16
+    const max10up: Array<number> = max16up.concat([4, 14, 24, 34, 43, 53, 62, 63, 64, 72, 73, 74]); // 6 ~ 10
+    const max5up: Array<number> = max10up.concat([65, 75, 82, 83, 84, 92]); // ~5
+    let p: IPhrase = video.firstPhrase;
+    const placeNumbers: Array<number> = new Array();
+    let select: Array<number>;
+    for (let i = 0; p !== null; i++) {
+      const count: number = p.charCount;
+      if(count < 5){
+        select = max5up;
+      }else if(count < 10){
+        select = max10up;
+      }else if(count < 16){
+        select = max16up;
+      }else{
+        select = max28up;
+      }
+      let placeIndex: number = getRandomInt(select.length);
+      let place: number = select[placeIndex];
       if(i !== 0){
         //0-0, 1-1, 2-2 or 3-3
         if(placeNumbers[i - 1] === place){
-          place++;
-          place %= 4;
+          placeIndex = getRandomInt(select.length);
+          place = select[placeIndex];
         }
       }
-      placeNumbers[i] = 0;
+      placeNumbers.push(place);
+      p = p.next;
     }
     console.log('placeNmbers', placeNumbers);
 
     this.charTextBoxs = new Array();
     this.phraseTexts = new Array();
-    let p: IPhrase = video.firstPhrase;
+    p = video.firstPhrase;
     for(let i = 0; p !== null; i++){
       let c: IChar = p.firstChar;
       for(let j = 0; j < p.charCount; j++){
@@ -53,10 +69,10 @@ export class LyricText extends Container {
         charTextBox.addChild(charText);
   
         const textBG: Graphics = new Graphics()
-          .beginFill(0x00ffff)
+          .beginFill(0xffffff)
           .drawCircle(0, 0, WR * 6)
           .endFill();
-        textBG.alpha = 0.1;
+        textBG.alpha = 0;
         charTextBox.addChild(textBG);
   
         charTextBox.visible = false;
@@ -96,6 +112,6 @@ export class LyricText extends Container {
       //phraseText.position.set(WR * 100, HR * 100);
     }
     //console.log('charTextBoxs', this.charTextBoxs);
-    //console.log('phraseTexts', this.phraseTexts);
+    console.log('phraseTexts', this.phraseTexts);
   }
 }

@@ -7,12 +7,13 @@ import { count } from 'console';
 import { TouchLine } from 'libs/tools/containers/TouchLine';
 import { LyricText } from 'libs/tools/containers/LyricText';
 import { CharInfo, PhraseInfo, POINT } from 'libs/tools/others/types';
+import { MoveTextTypes } from 'libs/tools/others/MoveTextTypes';
 
 export class GameScene extends Container implements IScene {
   //for Pixi
   private _TestText: TestText | null;
   private _LyricText: LyricText | null;
-  private _MoveLyricText: MoveLyricText;
+  private _MoveTextTypes: MoveTextTypes;
   private _TouchLine: TouchLine;
   private isGameNow: boolean;
   private fontLoaded: boolean;
@@ -25,7 +26,7 @@ export class GameScene extends Container implements IScene {
   private beatBuffer: IBeat | null;
   private beatDuration: number;
   private beatLength: number;
-  constructor(songURL: number = 4) {
+  constructor(songURL: number = 2) {
     super();
     //Pixi Init Setting
     const WR: number = Manager.wr;
@@ -36,7 +37,7 @@ export class GameScene extends Container implements IScene {
 
     this._TestText = null;
     this._LyricText = null;
-    this._MoveLyricText = new MoveLyricText();
+    this._MoveTextTypes = new MoveTextTypes();
     this.isGameNow = false;
     this.fontLoaded = false;
 
@@ -163,7 +164,7 @@ export class GameScene extends Container implements IScene {
         });
       }
     }
-    this._player.volume = 30;
+    this._player.volume = 5;
   }
 
   private _onVideoReady(video: IVideo): void {
@@ -261,7 +262,7 @@ export class GameScene extends Container implements IScene {
     // @ts-ignore Avoid type checking : Char -> RenderingUnit
     const charIndex: number = this._player.video.findIndex(charNow);
     const charTextBoxNow: CharInfo = this._LyricText.charTextBoxs[charIndex];
-    this._MoveLyricText.moveCharText(charTextBoxNow);
+    this._MoveTextTypes.moveCharText(charTextBoxNow);
   }
 
   private showPhrase(phraseNow: IPhrase): void {
@@ -269,7 +270,7 @@ export class GameScene extends Container implements IScene {
     // @ts-ignore Avoid type checking : Phrase -> RenderingUnit
     const phraseIndex: number = this._player.video.findIndex(phraseNow);
     const phraseTextBox: PhraseInfo = this._LyricText.phraseTexts[phraseIndex];
-    this._MoveLyricText.movePhraseText(phraseTextBox, this.beatDuration);
+    this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration);
   }
 
 
@@ -277,7 +278,7 @@ export class GameScene extends Container implements IScene {
 
   private _requestPlay(): void {
     //debug
-    this._player.requestMediaSeek(85000);
+    //this._player.requestMediaSeek(80000);
     this._player.requestPlay();
   }
 
@@ -303,7 +304,7 @@ export class GameScene extends Container implements IScene {
         url: 'https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap',
         metadata: {
           font: {
-            testString: this._player.data.text.replace(/\n/g, '') + 'a',
+            testString: this._player.data.text.replace(/\n/g, '')
           },
         },
       }
@@ -363,83 +364,24 @@ class TestText extends Container {
  * MoveLyricText Class
  */
 //based on 1920/1080 and change the position with ratio.
-class MoveLyricText {
+export class MoveLyricText {
   private readonly basedWidth: number = 1920;
   private readonly basedHeight: number = 1080;
-  private readonly WtoW: number = Manager.width; // change ratio
+  private readonly W: number = Manager.width;
+  private readonly H: number = Manager.height;
+  //private readonly WtoW: number = Manager.width; // change ratio
   private readonly WtoH: number = Manager.height * this.basedWidth / this.basedHeight; // change ratio
   constructor() {}
 
-  public moveCharText(charTextBox: CharInfo): void {
-    //const placeNumber: number = charTextBox.Place;
-    const placeNumber: number = 0;
-    const indexOf: number = charTextBox.PhraseIndexOf;
-    if(placeNumber === 0){
-      //Max : 32
-      if(indexOf < 5){
-        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
-      }else if(indexOf < 9){
-        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
-      }else if(indexOf < 13){
-        this.moveTextType7(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
-      }else if(indexOf < 18){
-        this.moveTextType3(charTextBox.TextBox, indexOf - 13, charTextBox.Duration);
-      }else if(indexOf < 25){
-        this.moveTextType5(charTextBox.TextBox, indexOf - 18, charTextBox.Duration);
-      }else if(indexOf < 32){
-        this.moveTextType4(charTextBox.TextBox, indexOf - 25, charTextBox.Duration, true);
-      }
-    }else if(placeNumber === 1){
-      //Max : 30
-      if(indexOf < 5){
-        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
-      }else if(indexOf < 9){
-        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
-      }else if(indexOf < 13){
-        this.moveTextType7(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
-      }else if(indexOf < 18){
-        this.moveTextType3(charTextBox.TextBox, indexOf - 13, charTextBox.Duration);
-      }else if(indexOf < 25){
-        this.moveTextType5(charTextBox.TextBox, indexOf - 18, charTextBox.Duration);
-      }else if(indexOf < 30){
-        this.moveTextType6(charTextBox.TextBox, indexOf - 25, charTextBox.Duration, true);
-      }
-    }else if(placeNumber === 2){
-      //Max : 16
-      if(indexOf < 5){
-        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
-      }else if(indexOf < 9){
-        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
-      }else if(indexOf < 16){
-        this.moveTextType5(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
-      }
-    }else if(placeNumber === 3){
-      //Max : 16
-      if(indexOf < 5){
-        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
-      }else if(indexOf < 9){
-        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
-      }else if(indexOf < 16){
-        this.moveTextType4(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
-      }
-    }else if(placeNumber === 4){
-      //Max : 10
-      if(indexOf < 5){
-        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
-      }else if(indexOf < 10){
-        this.moveTextType1(charTextBox.TextBox, indexOf - 5, charTextBox.Duration, true);
-      }
-    }
-  }
-
-  private moveTextBasic(TextBox: Container, Duration: number, radian: number, from: POINT, to: POINT): void {
-    TextBox.position.set(from.x * this.WtoW, from.y * this.WtoH);
+  //for CharText
+  public moveTextBasic(TextBox: Container, Duration: number, radian: number, from: POINT, to: POINT): void {
+    TextBox.position.set(from.x * this.W, from.y * this.WtoH);
     const textTL: gsap.core.Timeline = gsap.timeline();
     TextBox.visible = true;
     textTL
       .to(TextBox, {
         pixi: {
-          x: (to.x + Math.cos(radian) ) * this.WtoW,
+          x: (to.x + Math.cos(radian) ) * this.W,
           y: (to.y - Math.sin(radian) ) * this.WtoH,
         },
         duration: 0.9,
@@ -456,124 +398,25 @@ class MoveLyricText {
       });
   }
 
-  //Max : 5
-  private moveTextType0(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 1.05, W * 0.04, W, P * 154.8 / 180, P); //P * 25.2 / 180
-    let radian: number = 0;
-    if(reverse){
-      radian = Math.PI * (180 + (25.2 * (5 - indexOf)) / 5 ) / 180;
-    }else{
-      radian = Math.PI * (180 + (25.2 * indexOf) / 5 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:1.05, y:0.04});
-  }
-
-  //Max : 5
-  private moveTextType1(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc( - W * 0.65, - W * 0.14, W, P * 11 / 180, P * 37.2 / 180); //P * 26.2 / 180
-    let radian: number = 0;
-    if(!reverse){
-      radian = Math.PI * (360 - 37.2 + (26.2 * (5 - indexOf)) / 5 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 37.2 + (26.2 * indexOf) / 5 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:-0.15, y:0}, {x:-0.65, y:-0.14});
-  }
-
-  //Max : 5
-  private moveTextType2(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 1.65, - W * 0.14, W, P * 142.8 / 180, P * 169 / 180); //P * 26.2 / 180
-    let radian: number = 0;
-    if(reverse){
-      radian = Math.PI * (360 - 169 + (26.2 * (5 - indexOf)) / 5 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 169 + (26.2 * indexOf) / 5 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:1.15, y:0}, {x:1.65, y:-0.14});
-  }
-
-  //Max : 5
-  private moveTextType3(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc( - W * 0.05, W * 0.04, W, 0, P * 25.2 / 180); //P * 25.2 / 180
-    let radian: number = 0;
-    if(reverse){
-      radian = Math.PI * (360 - 25.2 + (25.2 * (5 - indexOf)) / 5 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 25.2 + (25.2 * indexOf) / 5 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:-0.05, y:0.04});
-  }
-
-  //Max : 7
-  private moveTextType4(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 0.9715, - W * 0.3515, W, P * 118 / 180, P * 157.1 / 180); //P * 39.1 / 180
-    let radian: number = 0;
-    if(reverse){
-      radian = Math.PI * (360 - 157.1 + (39.1 * (7 - indexOf)) / 7 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 157.1 + (39.1 * indexOf) / 7 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:0.9715, y:-0.3515});
-  }
-
-  //Max : 7
-  private moveTextType5(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 0.0285, - W * 0.3515, W, P * 22.9 / 180, P * 62 / 180); //P * 39.1 / 180
-    let radian: number = 0;
-    if(!reverse){
-      radian = Math.PI * (360 - 62 + (39.1 * (7 - indexOf)) / 7 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 62 + (39.1 * indexOf) / 7 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:0.0285, y:-0.3515});
-  }
-
-  //Max : 4
-  private moveTextType6(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 0.5, - W * 0.469, W, P * 90 / 180, P * 110.8 / 180); //P * 20.8 / 180
-    let radian: number = 0;
-    if(reverse){
-      radian = Math.PI * (360 - 110.8 + (20.8 * (4 - indexOf)) / 4 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 110.8 + (20.8 * indexOf) / 4 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:0.5, y:-0.469});
-  }
-
-  //Max : 4
-  private moveTextType7(TextBox: Container, indexOf: number, Duration: number , reverse: boolean = false): void{
-    //arc(W * 0.5, - W * 0.469, W, P * 69.2 / 180, P * 90 / 180); //P * 20.8 / 180
-    let radian: number = 0;
-    if(!reverse){
-      radian = Math.PI * (360 - 90 + (20.8 * (4 - indexOf)) / 4 ) / 180;
-    }else{
-      radian = Math.PI * (360 - 90 + (20.8 * indexOf) / 4 ) / 180;
-    }
-    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:0.5, y:-0.469});
-  }
-
-
   //for PhraseText
   public movePhraseText(phraseTextBox: PhraseInfo, beatDuration: number): void {
-    const W: number = Manager.width;
-    const H: number = Manager.height;
     const phraseText: Text = phraseTextBox.TextBox;
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
-    phraseText.position.set(W * 0.5, H * 0.33);
+    phraseText.position.set(this.W * 0.5, this.H * 0.38);
     const textTL: gsap.core.Timeline = gsap.timeline();
     phraseText.visible = true;
     textTL
       .to(phraseText, {
         pixi: {
-          y: '-=' + H * 0.03,
+          y: '-=' + this.H * 0.03,
           alpha: 1
         },
         duration: beatDuration / 1000,
       })
       .to(phraseText, {
         pixi: {
-          y: '-=' + H * 0.04,
+          y: '-=' + this.H * 0.05,
           scale: 0.4,
           alpha: 0.5
         },

@@ -27,7 +27,7 @@ export class LoaderScene extends Container implements IScene {
       fill: 0x000000,
       fontSize: 128,
     });
-    this.loadingText.resolution = 4;
+    this.loadingText.resolution = 2;
     this.loadingText.anchor.y = 0.5;
     this.loadingText.position.set(WR * 35, HR * 50);
     this.loadingText.scale.set(TR);
@@ -77,7 +77,7 @@ export class LoaderScene extends Container implements IScene {
         fontSize: 96,
       },
       {
-        resolution: 4,
+        resolution: 2,
         chars:
           Loader.shared.resources['fontText'].data.required.join('') +
           Loader.shared.resources['fontText'].data.text.join(''),
