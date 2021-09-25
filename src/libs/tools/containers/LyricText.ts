@@ -45,7 +45,7 @@ export class LyricText extends Container {
         const charTextBox: Container = new Container();
   
         const charText: Text = new Text(c.text, {fontFamily: 'Yusei Magic', fill: 0x000000, fontSize: 128 });
-        charText.resolution = 4;
+        charText.resolution = 2;
         charText.anchor.set(0.5, 0.55);
         charText.scale.set(TR * 1.3);
         //charText.zIndex = 10000 - i;
@@ -78,7 +78,7 @@ export class LyricText extends Container {
 
       //set phraseText
       const phraseText: Text = new Text(p.text, {fontFamily: 'Yusei Magic', fill: 0x000000, fontSize: 64 });
-      phraseText.resolution = 4;
+      phraseText.resolution = 2;
       phraseText.anchor.set(0.5);
       phraseText.scale.set(TR);
       phraseText.zIndex = i;

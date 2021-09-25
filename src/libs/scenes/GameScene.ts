@@ -276,6 +276,8 @@ export class GameScene extends Container implements IScene {
 
 
   private _requestPlay(): void {
+    //debug
+    this._player.requestMediaSeek(85000);
     this._player.requestPlay();
   }
 
@@ -369,7 +371,8 @@ class MoveLyricText {
   constructor() {}
 
   public moveCharText(charTextBox: CharInfo): void {
-    const placeNumber: number = charTextBox.Place;
+    //const placeNumber: number = charTextBox.Place;
+    const placeNumber: number = 0;
     const indexOf: number = charTextBox.PhraseIndexOf;
     if(placeNumber === 0){
       //Max : 32
@@ -387,7 +390,7 @@ class MoveLyricText {
         this.moveTextType4(charTextBox.TextBox, indexOf - 25, charTextBox.Duration, true);
       }
     }else if(placeNumber === 1){
-      //Max : 32
+      //Max : 30
       if(indexOf < 5){
         this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
       }else if(indexOf < 9){
@@ -398,8 +401,33 @@ class MoveLyricText {
         this.moveTextType3(charTextBox.TextBox, indexOf - 13, charTextBox.Duration);
       }else if(indexOf < 25){
         this.moveTextType5(charTextBox.TextBox, indexOf - 18, charTextBox.Duration);
-      }else if(indexOf < 32){
-        this.moveTextType4(charTextBox.TextBox, indexOf - 25, charTextBox.Duration, true);
+      }else if(indexOf < 30){
+        this.moveTextType6(charTextBox.TextBox, indexOf - 25, charTextBox.Duration, true);
+      }
+    }else if(placeNumber === 2){
+      //Max : 16
+      if(indexOf < 5){
+        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
+      }else if(indexOf < 9){
+        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
+      }else if(indexOf < 16){
+        this.moveTextType5(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
+      }
+    }else if(placeNumber === 3){
+      //Max : 16
+      if(indexOf < 5){
+        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
+      }else if(indexOf < 9){
+        this.moveTextType6(charTextBox.TextBox, indexOf - 5, charTextBox.Duration);
+      }else if(indexOf < 16){
+        this.moveTextType4(charTextBox.TextBox, indexOf - 9, charTextBox.Duration, true);
+      }
+    }else if(placeNumber === 4){
+      //Max : 10
+      if(indexOf < 5){
+        this.moveTextType0(charTextBox.TextBox, indexOf, charTextBox.Duration);
+      }else if(indexOf < 10){
+        this.moveTextType1(charTextBox.TextBox, indexOf - 5, charTextBox.Duration, true);
       }
     }
   }
@@ -473,7 +501,7 @@ class MoveLyricText {
     }else{
       radian = Math.PI * (360 - 25.2 + (25.2 * indexOf) / 5 ) / 180;
     }
-    this.moveTextBasic(TextBox, Duration, radian, {x:-0.05, y:0.04}, {x:-0.05, y:0.04});
+    this.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:-0.05, y:0.04});
   }
 
   //Max : 7
@@ -545,8 +573,8 @@ class MoveLyricText {
       })
       .to(phraseText, {
         pixi: {
-          y: '-=' + H * 0.06,
-          scale: 0.5,
+          y: '-=' + H * 0.04,
+          scale: 0.4,
           alpha: 0.5
         },
         duration: beatDuration / 1000,
