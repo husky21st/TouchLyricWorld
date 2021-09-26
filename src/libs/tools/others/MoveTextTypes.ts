@@ -1,11 +1,16 @@
 import { Container } from 'pixi.js';
 import { CharInfo, PhraseInfo} from 'libs/tools/others/types';
 import { MoveLyricText } from 'libs/scenes/GameScene';
+import { TouchLine } from 'libs/tools/containers/TouchLine';
 
 export class MoveTextTypes {
+  //private GameScene: Container;
   private _MoveLyricText: MoveLyricText;
+  //private _TouchLine: TouchLine;
   constructor() {
+    //this.GameScene = Scene;
     this._MoveLyricText = new MoveLyricText();
+    //this._TouchLine = new TouchLine();
   }
 
   public moveCharText(charTextBox: CharInfo): void{
@@ -619,7 +624,239 @@ export class MoveTextTypes {
     this._MoveLyricText.moveTextBasic(TextBox, Duration, radian, {x:0.5, y:-0.05}, {x:0.5, y:-0.469});
   }
 
-  public movePhraseText(phraseTextBox: PhraseInfo, beatDuration: number): void {
+  public movePhraseText(phraseTextBox: PhraseInfo, beatDuration: number, _TouchLine: TouchLine): void {
     this._MoveLyricText.movePhraseText(phraseTextBox, beatDuration);
+    const placeNumber: number = phraseTextBox.PhrasePlace;
+    const count: number = phraseTextBox.PhraseCharCount - 1;
+    if(placeNumber === 0){
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(7, count - 9, true);
+      _TouchLine.makeLine(3, count - 13, true);
+      _TouchLine.makeLine(5, count - 18);
+      _TouchLine.makeLine(4, count - 25, true);
+    }else if(placeNumber === 1){
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(7, count - 9, true);
+      _TouchLine.makeLine(3, count - 13, true);
+      _TouchLine.makeLine(5, count - 18);
+      _TouchLine.makeLine(6, count - 25, true);
+    }else if(placeNumber === 2){
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(5, count - 9, true);
+    }else if(placeNumber === 3){
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(4, count - 9, true);
+    }else if(placeNumber === 4){
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(1, count - 5, true);
+    }else if(placeNumber === 10){
+      _TouchLine.makeLine(3, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(6, count - 9, true);
+      _TouchLine.makeLine(0, count - 13, true);
+      _TouchLine.makeLine(4, count - 18);
+      _TouchLine.makeLine(5, count - 25, true);
+    }else if(placeNumber === 11){
+      _TouchLine.makeLine(3, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(6, count - 9, true);
+      _TouchLine.makeLine(0, count - 13, true);
+      _TouchLine.makeLine(4, count - 18);
+      _TouchLine.makeLine(7, count - 25, true);
+    }else if(placeNumber === 12){
+      _TouchLine.makeLine(3, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(4, count - 9, true);
+    }else if(placeNumber === 13){
+      _TouchLine.makeLine(3, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(5, count - 9, true);
+    }else if(placeNumber === 14){
+      _TouchLine.makeLine(3, count);
+      _TouchLine.makeLine(2, count - 5);
+    }else if(placeNumber === 20){
+      _TouchLine.makeLine(1, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(7, count - 9, true);
+      _TouchLine.makeLine(3, count - 13, true);
+      _TouchLine.makeLine(5, count - 18);
+      _TouchLine.makeLine(4, count - 25, true);
+    }else if(placeNumber === 21){
+      _TouchLine.makeLine(1, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(7, count - 9, true);
+      _TouchLine.makeLine(3, count - 13, true);
+      _TouchLine.makeLine(5, count - 18);
+      _TouchLine.makeLine(6, count - 25, true);
+    }else if(placeNumber === 22){
+      _TouchLine.makeLine(1, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(5, count - 9, true);
+    }else if(placeNumber === 23){
+      _TouchLine.makeLine(1, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(4, count - 9, true);
+    }else if(placeNumber === 24){
+      _TouchLine.makeLine(1, count);
+      _TouchLine.makeLine(0, count - 5, true);
+    }else if(placeNumber === 30){
+      _TouchLine.makeLine(2, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(6, count - 9, true);
+      _TouchLine.makeLine(0, count - 13, true);
+      _TouchLine.makeLine(4, count - 18);
+      _TouchLine.makeLine(5, count - 25, true);
+    }else if(placeNumber === 31){
+      _TouchLine.makeLine(2, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(6, count - 9, true);
+      _TouchLine.makeLine(0, count - 13, true);
+      _TouchLine.makeLine(4, count - 18);
+      _TouchLine.makeLine(7, count - 25, true);
+    }else if(placeNumber === 32){
+      _TouchLine.makeLine(2, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(4, count - 9, true);
+    }else if(placeNumber === 33){
+      _TouchLine.makeLine(2, count);
+      _TouchLine.makeLine(7, count - 5);
+      _TouchLine.makeLine(5, count - 9, true);
+    }else if(placeNumber === 34){
+      _TouchLine.makeLine(2, count);
+      _TouchLine.makeLine(3, count - 5, true);
+    }else if(placeNumber === 40){
+      _TouchLine.makeLine(4, count);
+      _TouchLine.makeLine(7, count - 7, true);
+      _TouchLine.makeLine(3, count - 11, true);
+      _TouchLine.makeLine(5, count - 16);
+      _TouchLine.makeLine(4, count - 23, true);
+    }else if(placeNumber === 41){
+      _TouchLine.makeLine(4, count);
+      _TouchLine.makeLine(7, count - 7, true);
+      _TouchLine.makeLine(3, count - 11, true);
+      _TouchLine.makeLine(5, count - 16);
+      _TouchLine.makeLine(6, count - 23, true);
+    }else if(placeNumber === 42){
+      _TouchLine.makeLine(4, count);
+      _TouchLine.makeLine(7, count - 7, true);
+      _TouchLine.makeLine(2, count - 11, true);
+    }else if(placeNumber === 43){
+      _TouchLine.makeLine(4, count);
+      _TouchLine.makeLine(5, count - 7, true);
+    }else if(placeNumber === 50){
+      _TouchLine.makeLine(5, count);
+      _TouchLine.makeLine(6, count - 7, true);
+      _TouchLine.makeLine(0, count - 11, true);
+      _TouchLine.makeLine(4, count - 16);
+      _TouchLine.makeLine(5, count - 23, true);
+    }else if(placeNumber === 51){
+      _TouchLine.makeLine(5, count);
+      _TouchLine.makeLine(6, count - 7, true);
+      _TouchLine.makeLine(0, count - 11, true);
+      _TouchLine.makeLine(4, count - 16);
+      _TouchLine.makeLine(7, count - 23, true);
+    }else if(placeNumber === 52){
+      _TouchLine.makeLine(5, count);
+      _TouchLine.makeLine(6, count - 7, true);
+      _TouchLine.makeLine(1, count - 11, true);
+    }else if(placeNumber === 53){
+      _TouchLine.makeLine(5, count);
+      _TouchLine.makeLine(4, count - 7, true);
+    }else if(placeNumber === 60){
+      _TouchLine.makeLine(6, count);
+      _TouchLine.makeLine(7, count - 4, true);
+      _TouchLine.makeLine(3, count - 8, true);
+      _TouchLine.makeLine(5, count - 13);
+      _TouchLine.makeLine(6, count - 20, true);
+      _TouchLine.makeLine(0, count - 24, true);
+    }else if(placeNumber === 61){
+      _TouchLine.makeLine(6, count);
+      _TouchLine.makeLine(7, count - 4, true);
+      _TouchLine.makeLine(3, count - 8, true);
+      _TouchLine.makeLine(5, count - 13);
+      _TouchLine.makeLine(4, count - 20, true);
+    }else if(placeNumber === 62){
+      _TouchLine.makeLine(6, count);
+      _TouchLine.makeLine(7, count - 4, true);
+      _TouchLine.makeLine(2, count - 8, true);
+    }else if(placeNumber === 63){
+      _TouchLine.makeLine(6, count);
+      _TouchLine.makeLine(5, count - 4, true);
+    }else if(placeNumber === 64){
+      _TouchLine.makeLine(6, count);
+      _TouchLine.makeLine(4, count - 4, true);
+    }else if(placeNumber === 65){
+      _TouchLine.makeLine(1, count, true);
+    }else if(placeNumber === 70){
+      _TouchLine.makeLine(7, count);
+      _TouchLine.makeLine(6, count - 4, true);
+      _TouchLine.makeLine(0, count - 8, true);
+      _TouchLine.makeLine(4, count - 13);
+      _TouchLine.makeLine(7, count - 20, true);
+      _TouchLine.makeLine(3, count - 24, true);
+    }else if(placeNumber === 71){
+      _TouchLine.makeLine(7, count);
+      _TouchLine.makeLine(6, count - 4, true);
+      _TouchLine.makeLine(0, count - 8, true);
+      _TouchLine.makeLine(4, count - 13);
+      _TouchLine.makeLine(5, count - 20, true);
+    }else if(placeNumber === 72){
+      _TouchLine.makeLine(7, count);
+      _TouchLine.makeLine(6, count - 4, true);
+      _TouchLine.makeLine(1, count - 8, true);
+    }else if(placeNumber === 73){
+      _TouchLine.makeLine(7, count);
+      _TouchLine.makeLine(4, count - 4, true);
+    }else if(placeNumber === 74){
+      _TouchLine.makeLine(7, count);
+      _TouchLine.makeLine(5, count - 4, true);
+    }else if(placeNumber === 75){
+      _TouchLine.makeLine(2, count, true);
+    }else  if(placeNumber === 80){
+      _TouchLine.makeLine(7, count, true);
+      _TouchLine.makeLine(3, count - 4, true);
+      _TouchLine.makeLine(5, count - 9);
+      _TouchLine.makeLine(6, count - 16, true);
+      _TouchLine.makeLine(0, count - 20, true);
+      _TouchLine.makeLine(4, count - 25);
+    }else if(placeNumber === 81){
+      _TouchLine.makeLine(7, count, true);
+      _TouchLine.makeLine(3, count - 4, true);
+      _TouchLine.makeLine(5, count - 9);
+      _TouchLine.makeLine(4, count - 16, true);
+    }else if(placeNumber === 82){
+      _TouchLine.makeLine(7, count, true);
+      _TouchLine.makeLine(2, count - 4, true);
+    }else if(placeNumber === 83){
+      _TouchLine.makeLine(5, count, true);
+    }else if(placeNumber === 84){
+      _TouchLine.makeLine(4, count, true);
+    }else if(placeNumber === 90){
+      _TouchLine.makeLine(6, count, true);
+      _TouchLine.makeLine(0, count - 4, true);
+      _TouchLine.makeLine(4, count - 9);
+      _TouchLine.makeLine(7, count - 16, true);
+      _TouchLine.makeLine(3, count - 20, true);
+      _TouchLine.makeLine(5, count - 25);
+    }else if(placeNumber === 91){
+      _TouchLine.makeLine(6, count, true);
+      _TouchLine.makeLine(0, count - 4, true);
+      _TouchLine.makeLine(4, count - 9);
+      _TouchLine.makeLine(5, count - 16, true);
+    }else if(placeNumber === 92){
+      _TouchLine.makeLine(6, count, true);
+      _TouchLine.makeLine(1, count - 4, true);
+    }else{
+      _TouchLine.makeLine(0, count);
+      _TouchLine.makeLine(6, count - 5);
+      _TouchLine.makeLine(7, count - 9, true);
+      _TouchLine.makeLine(3, count - 13, true);
+      _TouchLine.makeLine(5, count - 18);
+      _TouchLine.makeLine(4, count - 25, true);
+    }
   }
 }

@@ -1,4 +1,4 @@
-import { Container, Texture, Sprite, Graphics, BitmapText, Text, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, Point } from 'pixi.js';
+import { Container, Texture, Sprite, Graphics, BitmapText, Text, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, Point, DisplayObject } from 'pixi.js';
 import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer } from 'textalive-app-api';
 import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
@@ -15,6 +15,7 @@ export class GameScene extends Container implements IScene {
   private _LyricText: LyricText | null;
   private _MoveTextTypes: MoveTextTypes;
   private _TouchLine: TouchLine;
+  private phraseLineNumber: number;
   private isGameNow: boolean;
   private fontLoaded: boolean;
   //for TextAlive
@@ -38,6 +39,7 @@ export class GameScene extends Container implements IScene {
     this._TestText = null;
     this._LyricText = null;
     this._MoveTextTypes = new MoveTextTypes();
+    this.phraseLineNumber = 0;
     this.isGameNow = false;
     this.fontLoaded = false;
 
@@ -171,7 +173,7 @@ export class GameScene extends Container implements IScene {
     //check -> Player.isLoading
     console.log('%c!VideoReady', 'color: aqua');
     console.log('v', video);
-    const beatAveData: IBeat = this._player.data.getBeats()[10];
+    const beatAveData: IBeat = this._player.data.getBeats()[10] || this._player.data.getBeats()[0];
     this.beatDuration = beatAveData.duration;
     this.beatLength = beatAveData.index;
     console.log('beatAveData', beatAveData);
@@ -224,6 +226,11 @@ export class GameScene extends Container implements IScene {
   private _onPause(): void {
     //check -> Player.isPlaying
     console.log('%c!Pause', 'color: aqua');
+    if(this._player.video.endTime < this._player.timer.position){
+      console.log('END');
+    }else{
+      console.log('NOT END');
+    }
     this.isGameNow = false;
   }
 
@@ -233,7 +240,7 @@ export class GameScene extends Container implements IScene {
     //const phraseEarly:
 
     //phrase
-    const phraseNow: IPhrase = this._player.video.findPhrase(pos + 200);
+    const phraseNow: IPhrase = this._player.video.findPhrase(pos + 2000);
     if(phraseNow && phraseNow !== this.phraseBuffer){
       this.showPhrase(phraseNow);
       this.phraseBuffer = phraseNow;
@@ -270,10 +277,39 @@ export class GameScene extends Container implements IScene {
     // @ts-ignore Avoid type checking : Phrase -> RenderingUnit
     const phraseIndex: number = this._player.video.findIndex(phraseNow);
     const phraseTextBox: PhraseInfo = this._LyricText.phraseTexts[phraseIndex];
-    this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration);
+    this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration, this._TouchLine);
+    this.touchLineAnimation(this._TouchLine.children.slice(this.phraseLineNumber), phraseNow.duration);
+    this.phraseLineNumber = this._TouchLine.children.length;
   }
 
 
+  private touchLineAnimation(Lines: Array<DisplayObject>, Duration: number): void{
+    const phraseTouchLineTL: gsap.core.Timeline = gsap.timeline();
+    phraseTouchLineTL
+      .to(Lines, {
+        pixi: {
+          alpha: 1
+        },
+        duration: 0.1,
+        delay: 0.4,
+        yoyo: true,
+        repeat: 4,
+      })
+      .to(Lines, {
+        pixi: {
+          alpha: 0.2
+        },
+        duration: 1,
+        delay: 1
+      })
+      .to(Lines, {
+        pixi: {
+          alpha: 0
+        },
+        duration: 0.1,
+        delay: (Duration - 1000) / 1000
+      });
+  }
 
 
   private _requestPlay(): void {
@@ -377,9 +413,9 @@ export class MoveLyricText {
   //for CharText
   public moveTextBasic(TextBox: Container, Duration: number, radian: number, from: POINT, to: POINT): void {
     TextBox.position.set(from.x * this.W, from.y * this.WtoH);
-    const textTL: gsap.core.Timeline = gsap.timeline();
+    const charTextTL: gsap.core.Timeline = gsap.timeline();
     TextBox.visible = true;
-    textTL
+    charTextTL
       .to(TextBox, {
         pixi: {
           x: (to.x + Math.cos(radian) ) * this.W,
@@ -405,15 +441,16 @@ export class MoveLyricText {
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
     phraseText.position.set(this.W * 0.5, this.H * 0.39);
-    const textTL: gsap.core.Timeline = gsap.timeline();
+    const phraseTextTL: gsap.core.Timeline = gsap.timeline();
     phraseText.visible = true;
-    textTL
+    phraseTextTL
       .to(phraseText, {
         pixi: {
           y: '-=' + this.H * 0.03,
           alpha: 1
         },
         duration: beatDuration / 1000,
+        delay: 1.8
       })
       .to(phraseText, {
         pixi: {

@@ -82,8 +82,7 @@ export class LyricText extends Container {
           TextBox: charTextBox,
           Duration: c.duration + 50 || 50,
           Place: placeNumbers[i],
-          PhraseIndexOf: j,
-          PhraseCharCount: p.charCount
+          PhraseIndexOf: j
         });
   
         c = c.next;
@@ -104,7 +103,9 @@ export class LyricText extends Container {
       this.phraseTexts.push({
         TextBox: phraseText,
         Duration: p.duration,
-        NextDuration: p.next ? p.next.duration : 3000
+        NextDuration: p.next ? p.next.duration : 3000,
+        PhrasePlace: placeNumbers[i],
+        PhraseCharCount: p.charCount
       });
 
       p = p.next;
