@@ -11,6 +11,7 @@ class MyDocument extends Document {
       <Html lang="ja">
         <Head>
           <meta charSet="UTF-8" />
+          <link rel="icon" href="/flower.ico" />
           <meta name="theme-color" content="#039393" />
           <link
             href="https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap"

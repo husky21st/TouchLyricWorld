@@ -3,7 +3,6 @@ import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWo
 import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
 import { SoundLoader } from '@pixi/sound';
-import { count } from 'console';
 import { TouchLine } from 'libs/tools/containers/TouchLine';
 import { LyricText } from 'libs/tools/containers/LyricText';
 import { CharInfo, PhraseInfo, POINT } from 'libs/tools/others/types';
@@ -13,23 +12,26 @@ export class GameScene extends Container implements IScene {
   //for Pixi
   private _TestText: TestText | null;
   private _LyricText: LyricText | null;
-  private _MoveTextTypes: MoveTextTypes;
-  private _TouchLine: TouchLine;
   private phraseLineNumber: number;
   private isGameNow: boolean;
   private fontLoaded: boolean;
+  private _SomeSprite: SomeSprite;
+  private _TouchLine: TouchLine;
   //for TextAlive
   private _player: Player;
   private SONGURL: number;
   private charBuffer: IChar | null;
-  private wordBuffer: IWord | null;
   private phraseBuffer: IPhrase | null;
   private beatBuffer: IBeat | null;
   private beatDuration: number;
   private beatLength: number;
-  constructor(songURL: number = 2) {
+  //Others
+  private _MoveTextTypes: MoveTextTypes;
+  constructor(songURL: number = 1) {
     super();
-    //Pixi Init Setting
+    /**
+     * PIXI Init Setting
+     */
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
@@ -38,10 +40,18 @@ export class GameScene extends Container implements IScene {
 
     this._TestText = null;
     this._LyricText = null;
-    this._MoveTextTypes = new MoveTextTypes();
     this.phraseLineNumber = 0;
     this.isGameNow = false;
     this.fontLoaded = false;
+
+
+    this._SomeSprite = new SomeSprite();
+    this.addChild(this._SomeSprite);
+
+    this._TouchLine = new TouchLine();
+    this._TouchLine.scale.set(WR * 100 / 1920, HR * 100 / 1080);
+    this.addChild(this._TouchLine);
+
 
     const bg: Graphics = new Graphics()
       .beginFill(0x000000)
@@ -50,14 +60,15 @@ export class GameScene extends Container implements IScene {
     bg.alpha = 0;
     bg.zIndex= -10;
     bg.interactive = true;
+    bg.buttonMode = true;
     bg.on('pointerdown', this.debug, this);
     this.addChild(bg);
 
-    this._TouchLine = new TouchLine();
-    this._TouchLine.scale.set(WR * 100 / 1920, HR * 100 / 1080);
-    this.addChild(this._TouchLine);
 
-    //TextAlive Init Setting
+
+    /**
+     * TextAlive Init Setting
+     */
     this.SONGURL = songURL;
     this._player = new Player({
       app: { token: process.env.NEXT_PUBLIC_API_TOKEN || '' },
@@ -79,11 +90,15 @@ export class GameScene extends Container implements IScene {
     });
 
     this.charBuffer = null;
-    this.wordBuffer = null;
     this.phraseBuffer = null;
     this.beatBuffer = null;
     this.beatDuration = 3000;
     this.beatLength = 4;
+
+    /**
+     * Others Init Setting
+     */
+    this._MoveTextTypes = new MoveTextTypes();
   }
 
   private _onAppReady(app: IPlayerApp): void {
@@ -239,19 +254,24 @@ export class GameScene extends Container implements IScene {
     //EarlyPhrase
     //const phraseEarly:
 
-    //phrase
+    //new Phrase
     const phraseNow: IPhrase = this._player.video.findPhrase(pos + 2000);
     if(phraseNow && phraseNow !== this.phraseBuffer){
-      this.showPhrase(phraseNow);
+      // @ts-ignore Avoid type checking : Phrase -> RenderingUnit
+      const phraseIndex: number = this._player.video.findIndex(phraseNow);
+      const phraseTextBox: PhraseInfo = this._LyricText.phraseTexts[phraseIndex];
+      this.showPhrase(phraseTextBox);
+      this.touchLineAnimation(this._TouchLine.children.slice(this.phraseLineNumber), phraseNow.duration);
+      this.showStartCharPlace(phraseTextBox.PhrasePlace);
       this.phraseBuffer = phraseNow;
     }
-    //char
+    //new Char
     const charNow: IChar = this._player.video.findChar(pos + 1000);
     if(charNow && charNow !== this.charBuffer){
       this.showChar(charNow);
       this.charBuffer = charNow;
     }
-    //beat
+    //new Bbeat
     //console.log('position', position);
     const beatNow: IBeat = this._player.findBeat(pos);
     if(beatNow && beatNow !== this.beatBuffer){
@@ -272,18 +292,13 @@ export class GameScene extends Container implements IScene {
     this._MoveTextTypes.moveCharText(charTextBoxNow);
   }
 
-  private showPhrase(phraseNow: IPhrase): void {
-    if(!this._LyricText)return;
-    // @ts-ignore Avoid type checking : Phrase -> RenderingUnit
-    const phraseIndex: number = this._player.video.findIndex(phraseNow);
-    const phraseTextBox: PhraseInfo = this._LyricText.phraseTexts[phraseIndex];
+  private showPhrase(phraseTextBox: PhraseInfo): void {
     this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration, this._TouchLine);
-    this.touchLineAnimation(this._TouchLine.children.slice(this.phraseLineNumber), phraseNow.duration);
-    this.phraseLineNumber = this._TouchLine.children.length;
   }
 
 
   private touchLineAnimation(Lines: Array<DisplayObject>, Duration: number): void{
+    this.phraseLineNumber = this._TouchLine.children.length;
     const phraseTouchLineTL: gsap.core.Timeline = gsap.timeline();
     phraseTouchLineTL
       .to(Lines, {
@@ -308,6 +323,33 @@ export class GameScene extends Container implements IScene {
         },
         duration: 0.1,
         delay: (Duration - 1000) / 1000
+      });
+  }
+
+  private showStartCharPlace(placeNumber: number): void {
+    const placeType: number = Math.floor(placeNumber / 10);
+    //based on 1920/1080 and change the position with ratio.
+    const placePoint: POINT = this._MoveTextTypes.startCharPlace(placeType);
+    placePoint.x *= Manager.width;
+    placePoint.y *= Manager.height * 1920 / 1080;
+    this.showStartCharAnimation(placePoint);
+  }
+
+  private showStartCharAnimation(point: POINT) {
+    console.log('POINT', point);
+    const flower: Sprite = this._SomeSprite.showStartCharFlower;
+    gsap.killTweensOf(flower);
+    flower.alpha = 0;
+    flower.scale.set(Manager.wr * 0.06);
+    flower.position.set(point.x, point.y);
+    const showStartCharTL: gsap.core.Timeline = gsap.timeline();
+    showStartCharTL
+      .to(flower, {
+        pixi:{
+          alpha: 0.8,
+          scale: 0
+        }, 
+        duration:2.5
       });
   }
 
@@ -369,7 +411,9 @@ export class GameScene extends Container implements IScene {
 }
 
 /**
+ * 
  * TestText Class
+ * 
  */
 class TestText extends Container {
   public _text2: BitmapText;
@@ -397,7 +441,9 @@ class TestText extends Container {
 }
 
 /**
+ * 
  * MoveLyricText Class
+ * 
  */
 //based on 1920/1080 and change the position with ratio.
 export class MoveLyricText {
@@ -469,5 +515,38 @@ export class MoveLyricText {
         delay: ( NextDuration - beatDuration ) / 1000,
         onComplete: () => {phraseText.visible = false;}
       })
+  }
+}
+
+/**
+ * 
+ * SomeSprite Class
+ * 
+ */
+class SomeSprite extends Container {
+  private flower: Texture;
+  public showStartCharFlower: Sprite;
+  constructor() {
+    super();
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const TR: number = Manager.textScale;
+
+    this.flower = Texture.from('mainFlower');
+
+    this.showStartCharFlower = Sprite.from(this.flower);
+    this.showStartCharFlower.anchor.set(0.5);
+    this.showStartCharFlower.alpha = 0;
+    this.showStartCharFlower.scale.set(WR * 0.06);
+    this.addChild(this.showStartCharFlower);
+
+    gsap.to(this.showStartCharFlower,{
+      pixi: {
+        rotation: 359
+      }, 
+      duration: 3,
+      repeat: -1,
+      ease: 'none'
+    })
   }
 }

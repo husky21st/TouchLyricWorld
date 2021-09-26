@@ -1,16 +1,12 @@
 import { Container } from 'pixi.js';
-import { CharInfo, PhraseInfo} from 'libs/tools/others/types';
+import { CharInfo, PhraseInfo, POINT} from 'libs/tools/others/types';
 import { MoveLyricText } from 'libs/scenes/GameScene';
 import { TouchLine } from 'libs/tools/containers/TouchLine';
 
 export class MoveTextTypes {
-  //private GameScene: Container;
   private _MoveLyricText: MoveLyricText;
-  //private _TouchLine: TouchLine;
   constructor() {
-    //this.GameScene = Scene;
     this._MoveLyricText = new MoveLyricText();
-    //this._TouchLine = new TouchLine();
   }
 
   public moveCharText(charTextBox: CharInfo): void{
@@ -858,5 +854,34 @@ export class MoveTextTypes {
       _TouchLine.makeLine(5, count - 18);
       _TouchLine.makeLine(4, count - 25, true);
     }
+  }
+
+
+  public startCharPlace(placeType: number): POINT {
+    const PI: number = Math.PI;
+    const placePoint: POINT = {x:0, y:0};
+    if(placeType === 0 || placeType === 4){
+      placePoint.x = 1.05 + Math.cos(PI);
+      placePoint.y = 0.04 + Math.sin(PI);
+    }else if(placeType === 1 || placeType === 5){
+      placePoint.x = -0.05 + Math.cos(0);
+      placePoint.y = 0.04 + Math.sin(0);
+    }else if(placeType === 2){
+      placePoint.x = -0.65 + Math.cos(PI * 11 / 180);
+      placePoint.y = -0.14 + Math.sin(PI * 11 / 180);
+    }else if(placeType === 3){
+      placePoint.x =  1.65 + Math.cos(PI * 169 / 180);
+      placePoint.y = -0.14 + Math.sin(PI * 169 / 180);
+    }else if(placeType === 6){
+      placePoint.x = -0.65 + Math.cos(PI * 37.2 / 180);
+      placePoint.y = -0.14 + Math.sin(PI * 37.2 / 180);
+    }else if(placeType === 7){
+      placePoint.x = 1.65 + Math.cos(PI * 142.8 / 180);
+      placePoint.y = -0.14 + Math.sin(PI * 142.8 / 180);
+    }else{
+      placePoint.x = 0.5 + Math.cos(PI * 90 / 180);
+      placePoint.y = -0.469 + Math.sin(PI * 90 / 180);
+    }
+    return  placePoint;
   }
 }

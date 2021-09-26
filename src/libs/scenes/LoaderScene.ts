@@ -36,7 +36,7 @@ export class LoaderScene extends Container implements IScene {
 
     this._LoadingFlower = new LoadingFlower();
     this._LoadingFlower.position.set(WR * 50, HR * 50);
-    this._LoadingFlower.scale.set(WR * 0.05);
+    this._LoadingFlower.scale.set(WR < HR? WR * 0.05: HR * 0.2);
     this._LoadingFlower.alpha = 0.7;
     this.addChild(this._LoadingFlower);
 
@@ -46,10 +46,6 @@ export class LoaderScene extends Container implements IScene {
     Loader.shared.onComplete.once(this.gameLoaded, this);
 
     Loader.shared.load();
-
-    //gsap.to(LoadingFlower.flowermask, {
-    //  pixi: {y: -575}, duration: 10,
-    //});
   }
 
   private downloadProgress(loader: Loader): void {
@@ -127,7 +123,7 @@ class LoadingFlower extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
-    this.flower = Texture.from('Shapes/redTarget.png');
+    this.flower = Texture.from('Shapes/mainFlower.png');
 
     this.flowerSprite = Sprite.from(this.flower);
     this.addChild(this.flowerSprite);
@@ -137,12 +133,12 @@ class LoadingFlower extends Container {
 
     this.flowermask = new Graphics()
       .beginFill(0x000000, 0.8)
-      .drawRect(0, 0, 575, 575)
+      .drawRect(0, 0, 400, 400)
       .endFill();
     this.addChild(this.flowermask);
 
     this.flowermask.mask = this.flowerBGSprite;
 
-    this.pivot.set(575 / 2, 575 / 2);
+    this.pivot.set(400 / 2, 400 / 2);
   }
 }

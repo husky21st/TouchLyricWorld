@@ -14,4 +14,5 @@ export const assets = [
   { name: 'leftMiku', url: 'DancingMiku/left.png' },
   { name: 'rightMiku', url: 'DancingMiku/right.png' },
   { name: 'centerMiku', url: 'DancingMiku/center.png' },
+  { name: 'mainFlower', url: 'Shapes/mainFlower.png'}
 ];
