@@ -1,4 +1,4 @@
-import { Container, Text } from "pixi.js"
+import { Container, BitmapText } from "pixi.js"
 
 export type CharInfo = {
   TextBox: Container; //character graphic data
@@ -10,7 +10,7 @@ export type CharInfo = {
 }
 
 export type PhraseInfo = {
-  TextBox: Text;
+  TextBox: BitmapText;
   Duration: number;
   NextDuration: number;
   PhrasePlace: number;

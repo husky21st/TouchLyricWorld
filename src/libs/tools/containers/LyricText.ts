@@ -1,11 +1,15 @@
-import { Container, Texture, Sprite, Graphics, Text, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, Circle } from 'pixi.js';
+import { Container, Texture, Sprite, Graphics, BitmapText, BitmapFont, Point, ILineStyleOptions, LINE_JOIN, LINE_CAP, Circle, filters, InteractionEvent } from 'pixi.js';
 import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer } from 'textalive-app-api';
 import { IScene, Manager } from 'libs/manages/Manager';
 import { ScoreText } from 'libs/scenes/GameScene';
 import { CharInfo, PhraseInfo } from 'libs/tools/others/types';
 
-function getRandomInt(max: number) {
+const getRandomInt = (max: number): number => {
   return Math.floor(Math.random() * max);
+}
+
+const getDistance = (x: number, y: number) : number => {
+  return Math.sqrt(Math.pow(x, 2) + Math.pow(y, 2));
 }
 
 /**
@@ -14,13 +18,50 @@ function getRandomInt(max: number) {
 export class LyricText extends Container {
   public charTextBoxs: Array<CharInfo>;
   public phraseTexts: Array<PhraseInfo>;
-  constructor(video: IVideo, private _ScoreText :ScoreText, private basedScore: number) {
+  //for mobile
+  private baseWR: number = Manager.wr * 6;
+  constructor(video: IVideo, private _ScoreText :ScoreText, private allLyricText: string) {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
+    const startTime = performance.now();
+    BitmapFont.from(
+      'BasicYuseiMagic',
+      {
+        fontFamily: 'Yusei Magic',
+        fill: '#00d2fc',
+        fontSize: 64,
+      },
+      {
+        resolution: 2,
+        chars: this.allLyricText,
+      },
+    );
+    BitmapFont.from(
+      'PhraseYuseiMagic',
+      {
+        fontFamily: 'Yusei Magic',
+        fill: '#ffffff',
+        fontSize: 64,
+      },
+      {
+        resolution: 2,
+        chars: this.allLyricText,
+      },
+    );
+    const endTime1 = performance.now();
+    console.log('!!!1st', endTime1 - startTime);
 
     this.sortableChildren = true;
+    this.charTextBoxs = new Array();
+    this.phraseTexts = new Array();
+    
+    this.createTexts(video, WR, HR, TR);
+  }
+
+  private createTexts(video: IVideo, WR: number, HR: number, TR: number): void{
+    const endTime2 = performance.now();
     //decide place number
     const max28up: Array<number> = [0, 1, 10, 11, 20, 21, 30, 31, 40, 50, 60, 70, 80, 90]; // 17 ~
     const max16up: Array<number> = max28up.concat([2, 3, 12, 13, 22, 23, 32, 33, 41, 42, 51, 52, 61, 71, 81, 91]); // 11 ~ 16
@@ -52,10 +93,9 @@ export class LyricText extends Container {
       placeNumbers.push(place);
       p = p.next;
     }
-    console.log('placeNmbers', placeNumbers);
+    //console.log('placeNmbers', placeNumbers);
 
-    this.charTextBoxs = new Array();
-    this.phraseTexts = new Array();
+
     p = video.firstPhrase;
     for(let i = 0; p !== null; i++){
       let c: IChar = p.firstChar;
@@ -64,21 +104,22 @@ export class LyricText extends Container {
 
         charTextBox.sortableChildren = true;
   
-        const charText: Text = new Text(c.text, {fontFamily: 'Yusei Magic', fill: 0x000000, fontSize: 64 });
-        charText.resolution = 2;
+        const charText: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0x000000, fontSize: 64 });
         charText.anchor.set(0.5, 0.55);
         charText.scale.set(TR * 2.6);
         //charText.zIndex = 10000 - i;
         charText.zIndex = 100 * (i + 1) + j;
         charTextBox.addChild(charText);
 
-        const charTextBG: Text = new Text(c.text, {fontFamily: 'Yusei Magic', fill: 0x00d2fc, fontSize: 64 });
-        charTextBG.resolution = 2;
+        const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0xffffff, fontSize: 64 });
         charTextBG.anchor.set(0.5, 0.55);
         charTextBG.scale.set(TR * 2.7);
         charTextBG.zIndex = 100 * (i + 1) + j - 100000;
         charTextBG.alpha = 0;
         charTextBox.addChild(charTextBG);
+
+        const blurFilter1 = new filters.BlurFilter();
+        charTextBG.filters = [blurFilter1];
   
         const textBG1: Graphics = new Graphics()
           .beginFill(0x0000ff)
@@ -125,34 +166,34 @@ export class LyricText extends Container {
 
         textBG1.interactive = true;
         textBG1.buttonMode = true;
-        textBG1.on('pointerout', () => {this.addScore(newCharTextBox)}, this);
-        textBG1.on('pointerover', () => {this.addScore(newCharTextBox)}, this);
-        textBG1.on('touchstart', () => {this.addScore(newCharTextBox)}, this);
-        textBG1.on('touchmove', () => {this.addScore(newCharTextBox)}, this);
+        textBG1.on('pointerout', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG1.on('pointerover', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG1.on('touchstart', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG1.on('touchmove', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
         textBG2.interactive = true;
         textBG2.buttonMode = true;
-        textBG2.on('pointerout', () => {this.addScore(newCharTextBox)}, this);
-        textBG2.on('pointerover', () => {this.addScore(newCharTextBox)}, this);
-        textBG2.on('touchstart', () => {this.addScore(newCharTextBox)}, this);
-        textBG2.on('touchmove', () => {this.addScore(newCharTextBox)}, this);
+        textBG2.on('pointerout', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG2.on('pointerover', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG2.on('touchstart', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG2.on('touchmove', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
         textBG3.interactive = true;
         textBG3.buttonMode = true;
-        textBG3.on('pointerout', () => {this.addScore(newCharTextBox)}, this);
-        textBG3.on('pointerover', () => {this.addScore(newCharTextBox)}, this);
-        textBG3.on('touchstart', () => {this.addScore(newCharTextBox)}, this);
-        textBG3.on('touchmove', () => {this.addScore(newCharTextBox)}, this);
+        textBG3.on('pointerout', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG3.on('pointerover', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG3.on('touchstart', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG3.on('touchmove', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
         textBG4.interactive = true;
         textBG4.buttonMode = true;
-        textBG4.on('pointerout', () => {this.addScore(newCharTextBox)}, this);
-        textBG4.on('pointerover', () => {this.addScore(newCharTextBox)}, this);
-        textBG4.on('touchstart', () => {this.addScore(newCharTextBox)}, this);
-        textBG4.on('touchmove', () => {this.addScore(newCharTextBox)}, this);
+        textBG4.on('pointerout', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG4.on('pointerover', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG4.on('touchstart', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG4.on('touchmove', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
         textBG5.interactive = true;
         textBG5.buttonMode = true;
-        textBG5.on('pointerout', () => {this.addScore(newCharTextBox)}, this);
-        textBG5.on('pointerover', () => {this.addScore(newCharTextBox)}, this);
-        textBG5.on('touchstart', () => {this.addScore(newCharTextBox)}, this);
-        textBG5.on('touchmove', () => {this.addScore(newCharTextBox)}, this);
+        textBG5.on('pointerout', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG5.on('pointerover', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG5.on('touchstart', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
+        textBG5.on('touchmove', (event: InteractionEvent) => {this.addScore(event, newCharTextBox)}, this);
 
 
         this.charTextBoxs.push(newCharTextBox);
@@ -164,8 +205,7 @@ export class LyricText extends Container {
       }
 
       //set phraseText
-      const phraseText: Text = new Text(p.text, {fontFamily: 'Yusei Magic', fill: 0x000000, fontSize: 64 });
-      phraseText.resolution = 2;
+      const phraseText: BitmapText = new BitmapText(p.text, {fontName: 'PhraseYuseiMagic', tint: 0x000000, fontSize: 64 });
       phraseText.anchor.set(0.5);
       phraseText.scale.set(TR);
       phraseText.zIndex = i;
@@ -185,14 +225,17 @@ export class LyricText extends Container {
       //phraseText.position.set(WR * 100, HR * 100);
     }
     //console.log('charTextBoxs', this.charTextBoxs);
-    console.log('phraseTexts', this.phraseTexts);
+    //console.log('phraseTexts', this.phraseTexts);
+    const endTime3 = performance.now();
+    console.log('!2nd', endTime3 - endTime2);
   }
 
-  private addScore(charTextBox: CharInfo): void{
+  private addScore(event: InteractionEvent, charTextBox: CharInfo): void{
     if(!charTextBox.Reached || charTextBox.Touched) return;
+    const position: Point = event.data.getLocalPosition(event.currentTarget);
+    if(getDistance(position.x, position.y) > this.baseWR) return;
     charTextBox.Touched = true;
     charTextBox.TextBox.children[0].alpha = 1;
-    console.log('TOUCHED', charTextBox);
-    this._ScoreText.changeScore(this.basedScore);
+    this._ScoreText.changeScore();
   }
 }

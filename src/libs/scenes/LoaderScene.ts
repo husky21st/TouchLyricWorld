@@ -40,10 +40,12 @@ export class LoaderScene extends Container implements IScene {
     this._LoadingFlower.alpha = 0.5;
     this.addChild(this._LoadingFlower);
 
+    //Loader.shared.reset();
     Loader.shared.add(assets);
-
+    
     Loader.shared.onProgress.add(this.downloadProgress, this);
     Loader.shared.onComplete.once(this.gameLoaded, this);
+    Loader.shared.onError.once(this.errorHandle, this);
 
     Loader.shared.load();
   }
@@ -63,6 +65,16 @@ export class LoaderScene extends Container implements IScene {
     });
   }
 
+  private errorHandle(): void {
+    setTimeout(() => {
+      if(window !== undefined){
+        window.location.reload();
+      }else{
+        location.reload();
+      }
+    }, 1000);
+  }
+
   private initSetting(): void {
     //this.setAssetsVolume();
     BitmapFont.from(
@@ -70,7 +82,7 @@ export class LoaderScene extends Container implements IScene {
       {
         fontFamily: 'RocknRoll One',
         fill: '#ffffff',
-        fontSize: 96,
+        fontSize: 64,
       },
       {
         resolution: 2,
@@ -84,7 +96,7 @@ export class LoaderScene extends Container implements IScene {
       'ScoreRocknRoll',
       {
         fontFamily: 'RocknRoll One',
-        fontSize: 96,
+        fontSize: 48,
         fontStyle: 'italic',
         fontWeight: 'bold',
         fill: ['#ffffff', '#039393'], // gradient

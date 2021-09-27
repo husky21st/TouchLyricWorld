@@ -15,9 +15,11 @@ export class GameScene extends Container implements IScene {
   private fontLoaded: boolean;
   private _TestText: TestText | null;
   private _LyricText: LyricText | null;
+  private _BeatSprite: BeatSprite | null;
+  private _ScoreText: ScoreText | null;
   private _SomeSprite: SomeSprite;
   private _TouchLine: TouchLine;
-  private _ScoreText: ScoreText;
+  private bg: Graphics;
   //for TextAlive
   private _player: Player;
   private SONGURL: number;
@@ -27,8 +29,10 @@ export class GameScene extends Container implements IScene {
   private beatDuration: number;
   private beatLength: number;
   private basedScore: number;
+  private bonusScore: number;
+  private beatTouched: boolean;
   //Others
-  private _MoveTextTypes: MoveTextTypes;
+  private _MoveTextTypes: MoveTextTypes | null;
   constructor(songURL: number = 3) {
     super();
     /**
@@ -45,6 +49,7 @@ export class GameScene extends Container implements IScene {
     this.fontLoaded = false;
     this._TestText = null;
     this._LyricText = null;
+    this._BeatSprite = null;
 
     this._SomeSprite = new SomeSprite();
     this.addChild(this._SomeSprite);
@@ -53,21 +58,25 @@ export class GameScene extends Container implements IScene {
     this._TouchLine.scale.set(WR * 100 / 1920, HR * 100 / 1080);
     this.addChild(this._TouchLine);
 
-    this._ScoreText = new ScoreText();
-    this.addChild(this._ScoreText);
+    this._ScoreText = null;
+    //this._ScoreText = new ScoreText();
+    //this.addChild(this._ScoreText);
 
+    /**
+     * Screen Event
+     */
+    this.bg = new Graphics()
+      .beginFill(0x000000)
+      .drawRect(0, 0, WR * 100, HR * 100)
+      .endFill();
+    this.bg.alpha = 0;
+    this.bg.zIndex= -10;
+    this.bg.interactive = true;
+    this.bg.buttonMode = false;
+    this.bg.visible = false;
+    this.addChild(this.bg);
 
-    //const bg: Graphics = new Graphics()
-    //  .beginFill(0x000000)
-    //  .drawRect(0, 0, WR * 100, HR * 100)
-    //  .endFill();
-    //bg.alpha = 0;
-    //bg.zIndex= -10;
-    //bg.interactive = true;
-    //bg.buttonMode = false;
-    //bg.on('pointerdown', this.debug, this);
-    //this.addChild(bg);
-
+    window.addEventListener('keyup', (event: KeyboardEvent) => {this.keyEvent(event)});
 
 
     /**
@@ -99,11 +108,14 @@ export class GameScene extends Container implements IScene {
     this.beatDuration = 3000;
     this.beatLength = 4;
     this.basedScore = 0;
+    this.bonusScore = 0;
+    this.beatTouched = false;
 
     /**
      * Others Init Setting
      */
-    this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
+    this._MoveTextTypes = null;
+    //this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
   }
 
   private _onAppReady(app: IPlayerApp): void {
@@ -194,10 +206,20 @@ export class GameScene extends Container implements IScene {
     console.log('%c!VideoReady', 'color: aqua');
     console.log('v', video);
     const beatAveData: IBeat = this._player.data.getBeats()[10] || this._player.data.getBeats()[0];
+    const Beats: Array<IBeat> = this._player.getBeats();
+    const lastBeat: IBeat = Beats[Beats.length - 1];
     this.beatDuration = beatAveData.duration;
-    this.beatLength = beatAveData.index;
     console.log('beatAveData', beatAveData);
+    console.log('lastbeat', lastBeat);
+    this._BeatSprite = new BeatSprite();
+    this._BeatSprite.zIndex = -100;
+    this.addChild(this._BeatSprite);
     this.basedScore = 1000000 / video.charCount;
+    this.bonusScore = 10000 / (lastBeat.index + 1);
+    this._ScoreText = new ScoreText(this.basedScore, this.bonusScore);
+    this.addChild(this._ScoreText);
+    this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
+    this.bg.on('touchstart', this._beatTocuh, this);
     this.changeStyle();
     this.fontLoad(video);
   }
@@ -242,6 +264,7 @@ export class GameScene extends Container implements IScene {
     //check -> Player.isPlaying
     console.log('%c!Play', 'color: aqua');
     this.isGameNow = true;
+    this.bg.visible = true;
   }
 
   private _onPause(): void {
@@ -253,10 +276,11 @@ export class GameScene extends Container implements IScene {
       console.log('NOT END');
     }
     this.isGameNow = false;
+    this.bg.visible = false;
   }
 
   private _onTimeUpdate(pos: number): void {
-    if(!this._TestText || !this._LyricText) return;
+    if(!this._TestText || !this._LyricText || !this._BeatSprite) return;
     //EarlyPhrase
     //const phraseEarly:
 
@@ -283,12 +307,18 @@ export class GameScene extends Container implements IScene {
     if(beatNow && beatNow !== this.beatBuffer){
       //console.log('beat', beatNow.position);
       this._TestText._text2.text = beatNow.position.toString();
+      this._BeatSprite.newBeat(beatNow);
       this.beatBuffer = beatNow;
+      if(!this.beatTouched)this._BeatSprite.iloveMiku.alpha = 0.3;
+    }
+    const beatNowProgress: number = beatNow.progress(pos);
+    if(0.3 < beatNowProgress && beatNowProgress < 0.8){
+      this.beatTouched = false;
     }
   }
 
   private showChar(charNow: IChar): void {
-    if(!this._LyricText) return;
+    if(!this._LyricText || !this._MoveTextTypes) return;
     //countermeasures for 0 duration
     if(charNow.previous && charNow.previous !== this.charBuffer)this.showChar(charNow.previous);
     // @ts-ignore Avoid type checking : Char -> RenderingUnit
@@ -307,6 +337,7 @@ export class GameScene extends Container implements IScene {
   //}
 
   private showPhrase(phraseTextBox: PhraseInfo): void {
+    if(!this._MoveTextTypes) return;
     this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration, this._TouchLine);
   }
 
@@ -341,12 +372,38 @@ export class GameScene extends Container implements IScene {
   }
 
   private showStartCharPlace(placeNumber: number): void {
+    if(!this._MoveTextTypes) return;
     const placeType: number = Math.floor(placeNumber / 10);
     //based on 1920/1080 and change the position with ratio.
     const placePoint: POINT = this._MoveTextTypes.startCharPlace(placeType);
     placePoint.x *= Manager.width;
     placePoint.y *= Manager.height * 1920 / 1080;
     this._SomeSprite.showStartCharAnimation(placePoint);
+  }
+
+  private keyEvent(event: KeyboardEvent): void {
+    event.preventDefault();
+    if(!this.isGameNow) return;
+    if(event.code === 'Space' || event.key === ' ')this._beatTocuh(true);
+  }
+
+  private _beatTocuh(isKeyBoard: boolean = false): void{
+    if(this.isGameNow && this.beatTouched || !this._BeatSprite || !this._ScoreText) return;
+    const positionNow: number = this._player.timer.position;
+    const beatNow: IBeat = this._player.findBeat(positionNow);
+    if(!beatNow) return;
+    const beatNowProgress: number = beatNow.progress(positionNow);
+    console.log(beatNowProgress);
+    if(beatNowProgress < 0.3 || 0.8 < beatNowProgress){
+      this._BeatSprite.iloveMiku.alpha = 1;
+      this._ScoreText.changeBonus();
+      this.beatTouched = true;
+    }else{
+      if(isKeyBoard){
+        this._BeatSprite.iloveMiku.alpha = 0.3;
+        this._ScoreText.changeBonus(true);
+      }
+    }
   }
 
   private _requestPlay(): void {
@@ -384,12 +441,13 @@ export class GameScene extends Container implements IScene {
       }
     );
     
-    Loader.shared.onComplete.once(() => this.fontLoadEnd(video), this);
+    Loader.shared.onComplete.once(() => this.fontLoadEnd(video, allLyricText), this);
 
     Loader.shared.load();
   }
 
-  private fontLoadEnd(video: IVideo): void {
+  private fontLoadEnd(video: IVideo, allLyricText: string): void {
+    if(!this._ScoreText) return;
     this.fontLoaded = true;
     console.log('%c!fontLoaded', 'color: green');
     this._TestText = new TestText();
@@ -397,8 +455,11 @@ export class GameScene extends Container implements IScene {
     this._TestText._text2.buttonMode = true;
     this._TestText._text2.on('pointertap', this._requestPlay, this);
     this.addChild(this._TestText);
-    this._LyricText = new LyricText(video, this._ScoreText, this.basedScore);
+    const STime = performance.now();
+    this._LyricText = new LyricText(video, this._ScoreText, allLyricText);
     this.addChild(this._LyricText);
+    const ETime = performance.now();
+    console.log('!!!3rd', ETime - STime);
   }
 
   public update(): void {}
@@ -487,7 +548,7 @@ export class MoveLyricText {
 
   //for PhraseText
   public movePhraseText(phraseTextBox: PhraseInfo, beatDuration: number): void {
-    const phraseText: Text = phraseTextBox.TextBox;
+    const phraseText: BitmapText = phraseTextBox.TextBox;
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
     phraseText.position.set(this.W * 0.5, this.H * 0.39);
@@ -565,7 +626,7 @@ class SomeSprite extends Container {
     showStartCharTL
       .to(this.showStartCharFlower, {
         pixi:{
-          alpha: 0.8,
+          alpha: 1.2,
           scale: 0
         }, 
         duration:2.5
@@ -574,9 +635,15 @@ class SomeSprite extends Container {
 }
 
 
-const fixScoreText = (score: number):string => {
+
+const fixScore7Text = (score: number):string => {
   const newScore: number = Math.round(score);
   return ('0000000' + newScore).slice(-7)
+}
+
+const fixScore5Text = (score: number):string => {
+  const newScore: number = Math.round(score);
+  return ('00000' + newScore).slice(-5)
 }
 /**
  * 
@@ -586,11 +653,15 @@ const fixScoreText = (score: number):string => {
 export class ScoreText extends Container {
   public score: number;
   public combo: number;
+  public bonus: number;
   private scoreText: BitmapText;
   private scoreNumber: BitmapText;
   private comboText: BitmapText;
   private comboNumber: BitmapText;
-  constructor() {
+  private bonusText: BitmapText;
+  private bonusNumber: BitmapText;
+  private scoreHR: number = Manager.hr;
+  constructor(private normalAddScore: number, private bonusAddScore: number) {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
@@ -598,80 +669,122 @@ export class ScoreText extends Container {
 
     this.score = 0;
     this.combo = 0;
+    this.bonus = 0;
 
     this.scoreText = new BitmapText('SCORE', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
     this.scoreText.anchor.set(1);
-    this.scoreText.position.set(WR * 88, HR * 99);
+    this.scoreText.position.set(WR * 88, HR * 98.5);
     this.scoreText.scale.set(TR);
     this.addChild(this.scoreText);
 
-    this.scoreNumber = new BitmapText(fixScoreText(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.scoreNumber = new BitmapText(fixScore7Text(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
     this.scoreNumber.anchor.set(1);
-    this.scoreNumber.position.set(WR * 101, HR * 99);
+    this.scoreNumber.position.set(WR * 101, HR * 98.5);
     this.scoreNumber.scale.set(TR);
     this.addChild(this.scoreNumber);
 
     this.comboText = new BitmapText('COMBO', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
     this.comboText.anchor.set(1);
-    this.comboText.position.set(WR * 96, HR * 94);
+    this.comboText.position.set(WR * 96, HR * 88.5);
     this.comboText.scale.set(TR);
     this.comboText.alpha = 0;
     this.addChild(this.comboText);
 
     this.comboNumber = new BitmapText('0', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
     this.comboNumber.anchor.set(1);
-    this.comboNumber.position.set(WR * 100.5, HR * 94);
+    this.comboNumber.position.set(WR * 100.5, HR * 88.5);
     this.comboNumber.scale.set(TR);
     this.comboNumber.alpha = 0;
     this.addChild(this.comboNumber);
+
+    this.bonusText = new BitmapText('BONUS', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.bonusText.anchor.set(1);
+    this.bonusText.position.set(WR * 92, HR * 93.5);
+    this.bonusText.scale.set(TR);
+    this.addChild(this.bonusText);
+
+    this.bonusNumber = new BitmapText(fixScore5Text(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.bonusNumber.anchor.set(1);
+    this.bonusNumber.position.set(WR * 101, HR * 93.5);
+    this.bonusNumber.scale.set(TR);
+    this.addChild(this.bonusNumber);
   }
 
-  public changeScore(addScore: number): void {
+  public changeScore(): void {
     const backScore: number = this.score;
-    this.score += addScore;
+    this.score += this.normalAddScore;
     const backCombo: number = this.combo;
     this.combo += 1;
-    const tickBasedValue: number = addScore / 60;
+    const tickBasedValue: number = this.normalAddScore / 60;
     let tickValue: number = tickBasedValue;
-    console.log('tick', gsap.ticker.deltaRatio());
     gsap.killTweensOf(this.scoreNumber);
-    this.scoreNumber.text = fixScoreText(backScore);
+    this.scoreNumber.text = fixScore7Text(backScore);
     //onUpdate : 60tick / second
     gsap
       .to(this.scoreNumber, {
         onUpdate: () => {
-          this.scoreNumber.text = fixScoreText(backScore + tickValue);
+          this.scoreNumber.text = fixScore7Text(backScore + tickValue);
           tickValue += tickBasedValue;
         },
-        onComplete: () => {this.scoreNumber.text = fixScoreText(this.score)},
+        onComplete: () => {this.scoreNumber.text = fixScore7Text(this.score)},
         duration: 1,
       });
 
     //set combo
-    if(this.combo > 10){
+    if(this.combo > 9){
       gsap.killTweensOf(this.comboNumber);
       this.comboNumber.text = backCombo.toString();
       this.comboText.alpha = 1;
       this.comboNumber.alpha = 1;
-      this.comboNumber.y = Manager.hr * 94;
+      this.comboNumber.y = Manager.hr * 88.5;
       gsap
         .to(this.comboNumber, {
           pixi: {
-            y: '-=' + 10,
+            y: '-=' + this.scoreHR,
             alpha: 0
           },
           duration: 0.05,
           yoyo: true,
           repeat: 1,
-          onRepeat: () => {this.comboNumber.text = this.combo.toString()},
+          onRepeat: () => {this.comboNumber.text = this.combo.toString();},
           onComplete: () => {
-            this.comboNumber.text = backCombo.toString();
+            this.comboNumber.text = this.combo.toString();
             this.comboText.alpha = 1;
             this.comboNumber.alpha = 1;
-            this.comboNumber.y = Manager.hr * 94;
+            this.comboNumber.y = Manager.hr * 88.5;
           }
         });
     }
+  }
+
+  public changeBonus(minus: boolean = false): void {
+    console.log('%cBOUNUS', 'color: aqua');
+    let changeValue: number = this.bonusAddScore;
+    if(minus)changeValue *= -0.1;
+    const backBonus: number = this.bonus;
+    this.bonus += changeValue;
+    gsap.killTweensOf(this.bonusNumber);
+    this.bonusNumber.text = fixScore5Text(backBonus);
+    this.bonusText.alpha = 1;
+    this.bonusNumber.alpha = 1;
+    this.bonusNumber.y = Manager.hr * 93.5;
+    gsap
+      .to(this.bonusNumber, {
+        pixi: {
+          y: '-=' + this.scoreHR,
+          alpha: 0
+        },
+        duration: 0.05,
+        yoyo: true,
+        repeat: 1,
+        onRepeat: () => {this.bonusNumber.text = fixScore5Text(this.bonus);},
+        onComplete: () => {
+          this.bonusNumber.text = fixScore5Text(this.bonus);
+          this.bonusText.alpha = 1;
+          this.bonusNumber.alpha = 1;
+          this.bonusNumber.y = Manager.hr * 93.5;
+        }
+      });
   }
 
   public cancelCombo():void {
@@ -680,6 +793,93 @@ export class ScoreText extends Container {
     this.comboText.alpha = 0;
     this.comboNumber.alpha = 0;
   }
+}
 
 
+
+/**
+ * 
+ * BeatSprite Class
+ * 
+ */
+class BeatSprite extends Container {
+  public iloveMiku: Container;
+  private dancingMiku: Array<Sprite>;
+  private mikuTypeBuffer: number;
+  private scoreHR: number = Manager.hr * 3;
+  constructor() {
+    super();
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const TR: number = Manager.textScale;
+
+    this.iloveMiku = new Container();
+    this.dancingMiku = new Array();
+
+    const leftMiku: Sprite = Sprite.from('leftMiku');
+    leftMiku.anchor.set(0.5);
+    leftMiku.scale.set(WR * 0.02);
+    leftMiku.position.set(WR * 50, HR * 60);
+    leftMiku.alpha = 0;
+    this.iloveMiku.addChild(leftMiku);
+    this.dancingMiku.push(leftMiku);
+
+    const centerMiku: Sprite = Sprite.from('centerMiku');
+    centerMiku.anchor.set(0.49, 0.45);
+    centerMiku.scale.set(WR * 0.02);
+    centerMiku.position.set(WR * 50, HR * 60);
+    centerMiku.alpha = 1;
+    this.iloveMiku.addChild(centerMiku);
+    this.dancingMiku.push(centerMiku);
+
+
+    const rightMiku: Sprite = Sprite.from('rightMiku');
+    rightMiku.anchor.set(0.5);
+    rightMiku.scale.set(WR * 0.02);
+    rightMiku.position.set(WR * 50, HR * 60);
+    rightMiku.alpha = 0;
+    this.iloveMiku.addChild(rightMiku);
+    this.dancingMiku.push(rightMiku);
+
+    this.iloveMiku.alpha = 0.3;
+    this.addChild(this.iloveMiku);
+    this.mikuTypeBuffer = 1;
+  }
+
+  public newBeat(beatNow: IBeat): void{
+    let mikuType: number = 0;
+    if(beatNow.length === 3){
+      //1, 2, 3
+      if(beatNow.index % 2){
+        mikuType = beatNow.position - 1;
+      }else{
+        mikuType = 3 - beatNow.position;
+      }
+    }else{
+      //1, 2, 3, 4
+      if(beatNow.position % 2){
+        mikuType = beatNow.position - 1;
+      }else{
+        mikuType = 1;
+      }
+    }
+    
+    const dancingMikuTL: gsap.core.Timeline = gsap.timeline();
+    dancingMikuTL
+      .to(this.dancingMiku[this.mikuTypeBuffer], {
+        pixi: {
+          y: '-=' + this.scoreHR,
+          alpha: 0,
+        },
+        duration: (beatNow.duration - 200) / 2000,
+      })
+      .to(this.dancingMiku[mikuType], {
+        pixi: {
+          y: '+=' + this.scoreHR,
+          alpha: 1,
+        },
+        duration: (beatNow.duration - 200 ) / 2000,
+        onComplete: () => {this.mikuTypeBuffer = mikuType},
+      });
+  }
 }
