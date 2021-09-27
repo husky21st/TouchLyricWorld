@@ -30,25 +30,25 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
 
     window.addEventListener('resize', resizeCheck);
 
-    this.suggestText1 = new BitmapText("横画面推奨です", {fontName: 'RocknRoll', tint: 0x000000, fontSize: 128 });
+    this.suggestText1 = new BitmapText("横画面推奨です", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 128 });
     this.suggestText1.anchor.set(0.5);
     this.suggestText1.position.set(WR * 50, HR * 40);
     this.suggestText1.scale.set(TR);
     this.addChild(this.suggestText1);
 
-    this.suggestText2 = new BitmapText("please play the game in landscape mode", {fontName: 'RocknRoll', tint: 0x000000, fontSize: 64 });
+    this.suggestText2 = new BitmapText("please play the game in landscape mode", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
     this.suggestText2.anchor.set(0.5);
     this.suggestText2.position.set(WR * 50, HR * 50);
     this.suggestText2.scale.set(TR);
     this.addChild(this.suggestText2);
 
-    this.suggestText3 = new BitmapText("パソコンの場合は画面を横に長くしてから遊んでください", {fontName: 'RocknRoll', tint: 0x707070, fontSize: 72 });
+    this.suggestText3 = new BitmapText("パソコンの場合は画面を横に長くしてから遊んでください", {fontName: 'BasicRocknRoll', tint: 0x707070, fontSize: 72 });
     this.suggestText3.anchor.set(0.5);
     this.suggestText3.position.set(WR * 50, HR * 60);
     this.suggestText3.scale.set(TR);
     this.addChild(this.suggestText3);
 
-    this.continueButton = new BitmapText("> Continue <", {fontName: 'RocknRoll', tint: 0x707070, fontSize: 64 });
+    this.continueButton = new BitmapText("> Continue <", {fontName: 'BasicRocknRoll', tint: 0x707070, fontSize: 64 });
     this.continueButton.anchor.set(0.5);
     this.continueButton.position.set(WR * 50, HR * 80);
     this.continueButton.scale.set(TR);

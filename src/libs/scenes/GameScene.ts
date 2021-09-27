@@ -10,13 +10,14 @@ import { MoveTextTypes } from 'libs/tools/others/MoveTextTypes';
 
 export class GameScene extends Container implements IScene {
   //for Pixi
-  private _TestText: TestText | null;
-  private _LyricText: LyricText | null;
   private phraseLineNumber: number;
   private isGameNow: boolean;
   private fontLoaded: boolean;
+  private _TestText: TestText | null;
+  private _LyricText: LyricText | null;
   private _SomeSprite: SomeSprite;
   private _TouchLine: TouchLine;
+  private _ScoreText: ScoreText;
   //for TextAlive
   private _player: Player;
   private SONGURL: number;
@@ -25,9 +26,10 @@ export class GameScene extends Container implements IScene {
   private beatBuffer: IBeat | null;
   private beatDuration: number;
   private beatLength: number;
+  private basedScore: number;
   //Others
   private _MoveTextTypes: MoveTextTypes;
-  constructor(songURL: number = 1) {
+  constructor(songURL: number = 3) {
     super();
     /**
      * PIXI Init Setting
@@ -38,12 +40,11 @@ export class GameScene extends Container implements IScene {
 
     this.sortableChildren = true;
 
-    this._TestText = null;
-    this._LyricText = null;
     this.phraseLineNumber = 0;
     this.isGameNow = false;
     this.fontLoaded = false;
-
+    this._TestText = null;
+    this._LyricText = null;
 
     this._SomeSprite = new SomeSprite();
     this.addChild(this._SomeSprite);
@@ -52,17 +53,20 @@ export class GameScene extends Container implements IScene {
     this._TouchLine.scale.set(WR * 100 / 1920, HR * 100 / 1080);
     this.addChild(this._TouchLine);
 
+    this._ScoreText = new ScoreText();
+    this.addChild(this._ScoreText);
 
-    const bg: Graphics = new Graphics()
-      .beginFill(0x000000)
-      .drawRect(0, 0, WR * 100, HR * 100)
-      .endFill();
-    bg.alpha = 0;
-    bg.zIndex= -10;
-    bg.interactive = true;
-    bg.buttonMode = true;
-    bg.on('pointerdown', this.debug, this);
-    this.addChild(bg);
+
+    //const bg: Graphics = new Graphics()
+    //  .beginFill(0x000000)
+    //  .drawRect(0, 0, WR * 100, HR * 100)
+    //  .endFill();
+    //bg.alpha = 0;
+    //bg.zIndex= -10;
+    //bg.interactive = true;
+    //bg.buttonMode = false;
+    //bg.on('pointerdown', this.debug, this);
+    //this.addChild(bg);
 
 
 
@@ -94,11 +98,12 @@ export class GameScene extends Container implements IScene {
     this.beatBuffer = null;
     this.beatDuration = 3000;
     this.beatLength = 4;
+    this.basedScore = 0;
 
     /**
      * Others Init Setting
      */
-    this._MoveTextTypes = new MoveTextTypes();
+    this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
   }
 
   private _onAppReady(app: IPlayerApp): void {
@@ -181,7 +186,7 @@ export class GameScene extends Container implements IScene {
         });
       }
     }
-    this._player.volume = 5;
+    this._player.volume = 50;
   }
 
   private _onVideoReady(video: IVideo): void {
@@ -192,6 +197,7 @@ export class GameScene extends Container implements IScene {
     this.beatDuration = beatAveData.duration;
     this.beatLength = beatAveData.index;
     console.log('beatAveData', beatAveData);
+    this.basedScore = 1000000 / video.charCount;
     this.changeStyle();
     this.fontLoad(video);
   }
@@ -219,17 +225,17 @@ export class GameScene extends Container implements IScene {
     //console.log('Phrase1', this._player.video.firstPhrase.text);
     //console.log('Phrase2', this._player.video.firstPhrase.next.text);
     //console.log('Phrase3', this._player.video.firstPhrase.next.next);
-    const a = this._player.video.firstChar.next.next;
-    const c = this._player.video.firstPhrase.next.next;
-    const startTime = performance.now();
-    // @ts-ignore Avoid type checking : Char -> RenderingUnit
-    console.log('cccc', this._player.video.findIndex(this._player.video.lastChar));
-    const endTime1 = performance.now();
-    // @ts-ignore Avoid type checking : Phrase -> RenderingUnit
-    console.log('cccc', this._player.video.findIndex(this._player.video.lastPhrase));
-    const endTime2 = performance.now();
-    console.log(endTime1 - startTime);
-    console.log(endTime2 - endTime1);
+    //const a = this._player.video.firstChar.next.next;
+    //const c = this._player.video.firstPhrase.next.next;
+    //const startTime = performance.now();
+    //// @ts-ignore Avoid type checking : Char -> RenderingUnit
+    //console.log('cccc', this._player.video.findIndex(this._player.video.lastChar));
+    //const endTime1 = performance.now();
+    //// @ts-ignore Avoid type checking : Phrase -> RenderingUnit
+    //console.log('cccc', this._player.video.findIndex(this._player.video.lastPhrase));
+    //const endTime2 = performance.now();
+    //console.log(endTime1 - startTime);
+    //console.log(endTime2 - endTime1);
   }
 
   private _onPlay(): void {
@@ -285,12 +291,20 @@ export class GameScene extends Container implements IScene {
     if(!this._LyricText) return;
     //countermeasures for 0 duration
     if(charNow.previous && charNow.previous !== this.charBuffer)this.showChar(charNow.previous);
-    console.log('char.text', charNow.text);
     // @ts-ignore Avoid type checking : Char -> RenderingUnit
     const charIndex: number = this._player.video.findIndex(charNow);
     const charTextBoxNow: CharInfo = this._LyricText.charTextBoxs[charIndex];
+    console.log('V:', charIndex);
+    console.log('char.text', charNow.text);
     this._MoveTextTypes.moveCharText(charTextBoxNow);
   }
+
+  //private addScore(charTextBox: CharInfo): void{
+  //  if(!charTextBox.Reached || charTextBox.Touched) return;
+  //  console.log('TOUCHED', charTextBox);
+  //  charTextBox.Touched = true;
+  //  this._ScoreText.changeScore(1000);
+  //}
 
   private showPhrase(phraseTextBox: PhraseInfo): void {
     this._MoveTextTypes.movePhraseText(phraseTextBox, this.beatDuration, this._TouchLine);
@@ -332,27 +346,8 @@ export class GameScene extends Container implements IScene {
     const placePoint: POINT = this._MoveTextTypes.startCharPlace(placeType);
     placePoint.x *= Manager.width;
     placePoint.y *= Manager.height * 1920 / 1080;
-    this.showStartCharAnimation(placePoint);
+    this._SomeSprite.showStartCharAnimation(placePoint);
   }
-
-  private showStartCharAnimation(point: POINT) {
-    console.log('POINT', point);
-    const flower: Sprite = this._SomeSprite.showStartCharFlower;
-    gsap.killTweensOf(flower);
-    flower.alpha = 0;
-    flower.scale.set(Manager.wr * 0.06);
-    flower.position.set(point.x, point.y);
-    const showStartCharTL: gsap.core.Timeline = gsap.timeline();
-    showStartCharTL
-      .to(flower, {
-        pixi:{
-          alpha: 0.8,
-          scale: 0
-        }, 
-        duration:2.5
-      });
-  }
-
 
   private _requestPlay(): void {
     //debug
@@ -375,14 +370,15 @@ export class GameScene extends Container implements IScene {
   }
 
   private fontLoad(video: IVideo): void {
-    console.log(this._player.data.text.replace(/\n/g, ''));
+    const allLyricText: string = this._player.data.text.replace(/\n/g, '');
+    console.log(allLyricText);
     Loader.shared.add(
       {
         name: 'Yusei Magic',
         url: 'https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap',
         metadata: {
           font: {
-            testString: this._player.data.text.replace(/\n/g, '')
+            testString: allLyricText
           },
         },
       }
@@ -398,10 +394,10 @@ export class GameScene extends Container implements IScene {
     console.log('%c!fontLoaded', 'color: green');
     this._TestText = new TestText();
     this._TestText._text2.interactive = true;
+    this._TestText._text2.buttonMode = true;
     this._TestText._text2.on('pointertap', this._requestPlay, this);
     this.addChild(this._TestText);
-
-    this._LyricText = new LyricText(video);
+    this._LyricText = new LyricText(video, this._ScoreText, this.basedScore);
     this.addChild(this._LyricText);
   }
 
@@ -409,6 +405,8 @@ export class GameScene extends Container implements IScene {
 
   public resize(): void {}
 }
+
+
 
 /**
  * 
@@ -424,7 +422,7 @@ class TestText extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
-    this._text2 = new BitmapText('0', { fontName: 'RocknRoll', tint: 0x000000, fontSize: 64 });
+    this._text2 = new BitmapText('0', { fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
     this._text2.anchor.set(0.5);
     this._text2.position.set(WR * 10, HR * 90);
     this._text2.scale.set(TR);
@@ -440,6 +438,8 @@ class TestText extends Container {
   }
 }
 
+
+
 /**
  * 
  * MoveLyricText Class
@@ -454,30 +454,34 @@ export class MoveLyricText {
   private readonly TR: number = Manager.textScale;
   //private readonly WtoW: number = Manager.width; // change ratio
   private readonly WtoH: number = Manager.height * this.basedWidth / this.basedHeight; // change ratio
-  constructor() {}
+  constructor(private _ScoreText: ScoreText) {}
 
   //for CharText
-  public moveTextBasic(TextBox: Container, Duration: number, radian: number, from: POINT, to: POINT): void {
-    TextBox.position.set(from.x * this.W, from.y * this.WtoH);
+  public moveTextBasic(charTextBox: CharInfo, Duration: number, radian: number, from: POINT, to: POINT): void {
+    charTextBox.TextBox.position.set(from.x * this.W, from.y * this.WtoH);
     const charTextTL: gsap.core.Timeline = gsap.timeline();
-    TextBox.visible = true;
+    charTextBox.TextBox.visible = true;
     charTextTL
-      .to(TextBox, {
+      .to(charTextBox.TextBox, {
         pixi: {
           x: (to.x + Math.cos(radian) ) * this.W,
           y: (to.y - Math.sin(radian) ) * this.WtoH,
         },
-        duration: 0.9,
+        duration: 0.8,
         ease: 'none',
+        onComplete: () => {charTextBox.Reached = true;}
       })
-      .to(TextBox, {
+      .to(charTextBox.TextBox, {
         pixi: {
           alpha: 0
         },
         duration: 0.5,
-        delay: Duration / 1000,
+        delay: (Duration + 50) / 1000,
         ease: 'none',
-        onComplete: () => {TextBox.visible = false;}
+        onComplete: () => {
+          charTextBox.TextBox.visible = false;
+          if(!charTextBox.Touched)this._ScoreText.cancelCombo();
+        }
       });
   }
 
@@ -496,7 +500,7 @@ export class MoveLyricText {
           alpha: 1
         },
         duration: beatDuration / 1000,
-        delay: 1.8
+        delay: 1.6
       })
       .to(phraseText, {
         pixi: {
@@ -505,7 +509,7 @@ export class MoveLyricText {
           alpha: 0.2
         },
         duration: beatDuration / 1000,
-        delay: ( Duration - beatDuration ) / 1000
+        delay: ( Duration - beatDuration - 200 ) / 1000
       })
       .to(phraseText, {
         pixi: {
@@ -518,6 +522,8 @@ export class MoveLyricText {
   }
 }
 
+
+
 /**
  * 
  * SomeSprite Class
@@ -525,7 +531,7 @@ export class MoveLyricText {
  */
 class SomeSprite extends Container {
   private flower: Texture;
-  public showStartCharFlower: Sprite;
+  private showStartCharFlower: Sprite;
   constructor() {
     super();
     const WR: number = Manager.wr;
@@ -549,4 +555,131 @@ class SomeSprite extends Container {
       ease: 'none'
     })
   }
+
+  public showStartCharAnimation(point: POINT): void{
+    gsap.killTweensOf(this.showStartCharFlower);
+    this.showStartCharFlower.alpha = 0;
+    this.showStartCharFlower.scale.set(Manager.wr * 0.06);
+    this.showStartCharFlower.position.set(point.x, point.y);
+    const showStartCharTL: gsap.core.Timeline = gsap.timeline();
+    showStartCharTL
+      .to(this.showStartCharFlower, {
+        pixi:{
+          alpha: 0.8,
+          scale: 0
+        }, 
+        duration:2.5
+      });
+  }
+}
+
+
+const fixScoreText = (score: number):string => {
+  const newScore: number = Math.round(score);
+  return ('0000000' + newScore).slice(-7)
+}
+/**
+ * 
+ * ScoreText Class
+ * 
+ */
+export class ScoreText extends Container {
+  public score: number;
+  public combo: number;
+  private scoreText: BitmapText;
+  private scoreNumber: BitmapText;
+  private comboText: BitmapText;
+  private comboNumber: BitmapText;
+  constructor() {
+    super();
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const TR: number = Manager.textScale;
+
+    this.score = 0;
+    this.combo = 0;
+
+    this.scoreText = new BitmapText('SCORE', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.scoreText.anchor.set(1);
+    this.scoreText.position.set(WR * 88, HR * 99);
+    this.scoreText.scale.set(TR);
+    this.addChild(this.scoreText);
+
+    this.scoreNumber = new BitmapText(fixScoreText(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.scoreNumber.anchor.set(1);
+    this.scoreNumber.position.set(WR * 101, HR * 99);
+    this.scoreNumber.scale.set(TR);
+    this.addChild(this.scoreNumber);
+
+    this.comboText = new BitmapText('COMBO', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
+    this.comboText.anchor.set(1);
+    this.comboText.position.set(WR * 96, HR * 94);
+    this.comboText.scale.set(TR);
+    this.comboText.alpha = 0;
+    this.addChild(this.comboText);
+
+    this.comboNumber = new BitmapText('0', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
+    this.comboNumber.anchor.set(1);
+    this.comboNumber.position.set(WR * 100.5, HR * 94);
+    this.comboNumber.scale.set(TR);
+    this.comboNumber.alpha = 0;
+    this.addChild(this.comboNumber);
+  }
+
+  public changeScore(addScore: number): void {
+    const backScore: number = this.score;
+    this.score += addScore;
+    const backCombo: number = this.combo;
+    this.combo += 1;
+    const tickBasedValue: number = addScore / 60;
+    let tickValue: number = tickBasedValue;
+    console.log('tick', gsap.ticker.deltaRatio());
+    gsap.killTweensOf(this.scoreNumber);
+    this.scoreNumber.text = fixScoreText(backScore);
+    //onUpdate : 60tick / second
+    gsap
+      .to(this.scoreNumber, {
+        onUpdate: () => {
+          this.scoreNumber.text = fixScoreText(backScore + tickValue);
+          tickValue += tickBasedValue;
+        },
+        onComplete: () => {this.scoreNumber.text = fixScoreText(this.score)},
+        duration: 1,
+      });
+
+    //set combo
+    if(this.combo > 10){
+      gsap.killTweensOf(this.comboNumber);
+      this.comboNumber.text = backCombo.toString();
+      this.comboText.alpha = 1;
+      this.comboNumber.alpha = 1;
+      this.comboNumber.y = Manager.hr * 94;
+      gsap
+        .to(this.comboNumber, {
+          pixi: {
+            y: '-=' + 10,
+            alpha: 0
+          },
+          duration: 0.05,
+          yoyo: true,
+          repeat: 1,
+          onRepeat: () => {this.comboNumber.text = this.combo.toString()},
+          onComplete: () => {
+            this.comboNumber.text = backCombo.toString();
+            this.comboText.alpha = 1;
+            this.comboNumber.alpha = 1;
+            this.comboNumber.y = Manager.hr * 94;
+          }
+        });
+    }
+  }
+
+  public cancelCombo():void {
+    gsap.killTweensOf(this.comboNumber);
+    this.combo = 0;
+    this.comboText.alpha = 0;
+    this.comboNumber.alpha = 0;
+  }
+
+
 }

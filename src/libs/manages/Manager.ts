@@ -68,6 +68,9 @@ export class Manager {
     
     //pixi-webfont-loader
     PIXI.Loader.registerPlugin(WebfontLoaderPlugin);
+
+    //other setting
+    PIXI.TextMetrics.BASELINE_SYMBOL += 'あぽ｜';
     
     // Add the ticker
     Manager.app.ticker.stop();

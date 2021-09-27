@@ -25,19 +25,19 @@ export class LoaderScene extends Container implements IScene {
     this.loadingText = new Text('Loading.', {
       fontFamily: 'RocknRoll One',
       fill: 0x000000,
-      fontSize: 128,
+      fontSize: 64,
     });
     this.loadingText.resolution = 2;
     this.loadingText.anchor.y = 0.5;
     this.loadingText.position.set(WR * 35, HR * 50);
-    this.loadingText.scale.set(TR);
+    this.loadingText.scale.set(TR * 2);
     this.loadingText.zIndex = 100;
     this.addChild(this.loadingText);
 
     this._LoadingFlower = new LoadingFlower();
     this._LoadingFlower.position.set(WR * 50, HR * 50);
-    this._LoadingFlower.scale.set(WR < HR? WR * 0.05: HR * 0.2);
-    this._LoadingFlower.alpha = 0.7;
+    this._LoadingFlower.scale.set(WR < HR? HR * 0.15: WR * 0.1);
+    this._LoadingFlower.alpha = 0.5;
     this.addChild(this._LoadingFlower);
 
     Loader.shared.add(assets);
@@ -49,7 +49,7 @@ export class LoaderScene extends Container implements IScene {
   }
 
   private downloadProgress(loader: Loader): void {
-    this._LoadingFlower.flowermask.y = - (loader.progress * 5.75);
+    this._LoadingFlower.flowermask.y = - (loader.progress * 4);
   }
 
   private gameLoaded(): void {
@@ -66,11 +66,38 @@ export class LoaderScene extends Container implements IScene {
   private initSetting(): void {
     //this.setAssetsVolume();
     BitmapFont.from(
-      'RocknRoll',
+      'BasicRocknRoll',
       {
         fontFamily: 'RocknRoll One',
         fill: '#ffffff',
         fontSize: 96,
+      },
+      {
+        resolution: 2,
+        chars:
+          Loader.shared.resources['fontText'].data.required.join('') +
+          Loader.shared.resources['fontText'].data.text.join(''),
+      },
+    );
+
+    BitmapFont.from(
+      'ScoreRocknRoll',
+      {
+        fontFamily: 'RocknRoll One',
+        fontSize: 96,
+        fontStyle: 'italic',
+        fontWeight: 'bold',
+        fill: ['#ffffff', '#039393'], // gradient
+        stroke: '#4a1850',
+        strokeThickness: 5,
+        dropShadow: true,
+        dropShadowColor: '#000000',
+        dropShadowBlur: 4,
+        dropShadowAngle: Math.PI / 6,
+        dropShadowDistance: 6,
+        wordWrap: true,
+        wordWrapWidth: 440,
+        lineJoin: 'round',
       },
       {
         resolution: 2,
@@ -123,7 +150,7 @@ class LoadingFlower extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
-    this.flower = Texture.from('Shapes/mainFlower.png');
+    this.flower = Texture.from('LoadingMiku.png');
 
     this.flowerSprite = Sprite.from(this.flower);
     this.addChild(this.flowerSprite);
@@ -132,7 +159,7 @@ class LoadingFlower extends Container {
     this.addChild(this.flowerBGSprite);
 
     this.flowermask = new Graphics()
-      .beginFill(0x000000, 0.8)
+      .beginFill(0x000000, 1)
       .drawRect(0, 0, 400, 400)
       .endFill();
     this.addChild(this.flowermask);

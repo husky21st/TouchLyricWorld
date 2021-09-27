@@ -10,7 +10,7 @@ export class GameMenuScene extends Container implements IScene {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
-    this.text = new BitmapText("aaa", {fontName: 'RocknRoll', tint: 0x000000, fontSize: 128 });
+    this.text = new BitmapText("aaa", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
     this.text.anchor.set(0.5);
     this.text.position.set(WR * 50, HR * 50);
     this.text.scale.set(TR);
