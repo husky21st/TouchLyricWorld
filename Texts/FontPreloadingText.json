@@ -2,8 +2,7 @@
 	"required":[
 		"0123456789",
 		"abcdefghijklmnopqrstuvwxyz",
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
-		".,/`~:;'-_=+!@#$%^&*()~{}[]<>? "
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	],
 	"text":[
 		"横画面推奨です",
