@@ -70,21 +70,7 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
     });
   }
 
-  public update(): void {
-    //if(this.checkResize) return;
-    //const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-    //const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-    //if(screenWidth !== this.widthBuffer || screenHeight !== this.heightBuffer){
-    //  console.log('RESIZEEEEEEEEEEEEE');
-    //  this.checkResize = true;
-    //  this.widthBuffer = screenWidth;
-    //  this.heightBuffer = screenHeight;
-    //  setTimeout(() => {
-    //    Manager._onResize(screenWidth, screenHeight);
-    //    this.checkResize = false;
-    //  }, 500);
-    //}
-  }
+  public update(): void {}
 
   public resize(): void {
     const WR: number = Manager.wr;

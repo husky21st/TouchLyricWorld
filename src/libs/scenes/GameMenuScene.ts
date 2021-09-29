@@ -3,6 +3,18 @@ import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
 import { GameScene } from 'libs/scenes/GameScene';
 
+let resizeTimer: number = 0;
+const resizeCheck = (): void => {
+  if (resizeTimer > 0) {
+    clearTimeout(resizeTimer);
+  }
+  resizeTimer = window.setTimeout(function (): void {
+    const screenWidth = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
+    const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
+    Manager._onResize(screenWidth, screenHeight);
+  }, 300);
+}
+
 export class GameMenuScene extends Container implements IScene {
   private BG: Graphics;
   private _Buttons: Buttons;
@@ -14,14 +26,21 @@ export class GameMenuScene extends Container implements IScene {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
+    window.addEventListener('resize', resizeCheck);
 
     this._Buttons = new Buttons();
     this.addChild(this._Buttons);
 
+    const maxW: number = Math.max(screen.availWidth, document.documentElement.clientWidth);
+    const maxH: number = Math.max(screen.availHeight, document.documentElement.clientHeight);
+    const maxWH: number = Math.max(maxW, maxH);
+
     this.BG = new Graphics()
       .beginFill(0x000000, 0.3)
-      .drawRect(0, 0, WR * 100, HR * 100)
+      .drawRect(0, 0, maxWH, maxWH)
       .endFill();
+    this.BG.pivot.set(maxWH / 2, maxWH / 2);
+    this.BG.position.set(WR * 50, HR * 50);
     this.BG.interactive = true;
     this.BG.visible = false;
     this.addChild(this.BG);
@@ -29,8 +48,8 @@ export class GameMenuScene extends Container implements IScene {
 
     this._CreditScreen = new CreditScreen();
     this._CreditScreen.pivot.set(800, 400);
-    this._CreditScreen.scale.set(HR * 0.07);
     this._CreditScreen.position.set(WR * 50, HR * 50);
+    this._CreditScreen.scale.set(HR * 0.07);
     this._CreditScreen.alpha = 0;
     this._CreditScreen.visible = false;
     this._CreditScreen.interactive = true;
@@ -70,6 +89,7 @@ export class GameMenuScene extends Container implements IScene {
 
   private handlePlayButton(): void{
     this._Buttons.playButton.interactive = false;
+    window.removeEventListener('resize', resizeCheck);
     gsap.to(this, {
       pixi: {alpha: 0}, duration: 0.5,
       onComplete: () => Manager.changeScene(new GameScene(this.songSelectURL)),
@@ -78,7 +98,44 @@ export class GameMenuScene extends Container implements IScene {
 
   public update(): void {}
 
-  public resize(): void {}
+  public resize(): void {
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const TR: number = Manager.textScale;
+    const BasedScale: number = WR / 25;
+
+    this.BG.position.set(WR * 50, HR * 50);
+
+    this._CreditScreen.position.set(WR * 50, HR * 50);
+    this._CreditScreen.scale.set(HR * 0.07);
+
+    this._Buttons.title.position.set(WR * 23, HR * 40);
+    this._Buttons.title.scale.set(BasedScale * 1.2);
+
+    this._Buttons.playButton.position.set(WR * 85, HR * 90);
+    this._Buttons.playButton.scale.set(BasedScale);
+
+    this._Buttons.creditButton.position.set(WR * 60, HR * 90);
+    this._Buttons.creditButton.scale.set(BasedScale);
+
+    this._Buttons.song1Button.position.set(WR * 80, HR * 11);
+    this._Buttons.song1Button.scale.set(BasedScale);
+
+    this._Buttons.song2Button.position.set(WR * 80, HR * 23);
+    this._Buttons.song2Button.scale.set(BasedScale);
+
+    this._Buttons.song3Button.position.set(WR * 80, HR * 35);
+    this._Buttons.song3Button.scale.set(BasedScale);
+
+    this._Buttons.song4Button.position.set(WR * 80, HR * 47);
+    this._Buttons.song4Button.scale.set(BasedScale);
+
+    this._Buttons.song5Button.position.set(WR * 80, HR * 59);
+    this._Buttons.song5Button.scale.set(BasedScale);
+
+    this._Buttons.song6Button.position.set(WR * 80, HR * 71);
+    this._Buttons.song6Button.scale.set(BasedScale);
+  }
 }
 
 
