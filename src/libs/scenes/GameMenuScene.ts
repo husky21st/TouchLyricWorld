@@ -109,13 +109,13 @@ export class GameMenuScene extends Container implements IScene {
     this._CreditScreen.position.set(WR * 50, HR * 50);
     this._CreditScreen.scale.set(HR * 0.07);
 
-    this._Buttons.title.position.set(WR * 23, HR * 40);
-    this._Buttons.title.scale.set(BasedScale * 1.2);
+    this._Buttons.title.position.set(WR * 25, HR * 43);
+    this._Buttons.title.scale.set(BasedScale * 1.3);
 
-    this._Buttons.playButton.position.set(WR * 85, HR * 90);
+    this._Buttons.playButton.position.set(WR * 86, HR * 90);
     this._Buttons.playButton.scale.set(BasedScale);
 
-    this._Buttons.creditButton.position.set(WR * 60, HR * 90);
+    this._Buttons.creditButton.position.set(WR * 59, HR * 90);
     this._Buttons.creditButton.scale.set(BasedScale);
 
     this._Buttons.song1Button.position.set(WR * 80, HR * 11);
@@ -207,13 +207,13 @@ class Buttons extends Container {
 
     this.title = Sprite.from('title');
     this.title.anchor.set(0.5);
-    this.title.position.set(WR * 23, HR * 40);
-    this.title.scale.set(BasedScale * 1.2);
+    this.title.position.set(WR * 25, HR * 43);
+    this.title.scale.set(BasedScale * 1.3);
     this.addChild(this.title);
 
     this.playButton = Sprite.from('titlePlayButton');
     this.playButton.anchor.set(0.5);
-    this.playButton.position.set(WR * 85, HR * 90);
+    this.playButton.position.set(WR * 86, HR * 90);
     this.playButton.scale.set(BasedScale);
     this.playButton.interactive = true;
     this.playButton.buttonMode = true;
@@ -221,7 +221,7 @@ class Buttons extends Container {
 
     this.creditButton = Sprite.from('titleCreditButton');
     this.creditButton.anchor.set(0.5);
-    this.creditButton.position.set(WR * 60, HR * 90);
+    this.creditButton.position.set(WR * 59, HR * 90);
     this.creditButton.scale.set(BasedScale);
     this.creditButton.interactive = true;
     this.creditButton.buttonMode = true;

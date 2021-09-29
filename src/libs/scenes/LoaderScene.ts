@@ -95,17 +95,17 @@ export class LoaderScene extends Container implements IScene {
       'ScoreRocknRoll',
       {
         fontFamily: 'RocknRoll One',
-        fontSize: 48,
+        fontSize: 96,
         fontStyle: 'italic',
         fontWeight: 'bold',
-        fill: ['#ffffff', '#039393'], // gradient
+        fill: ['#ffffff', '#05ffff'], // gradient
         stroke: '#4a1850',
-        strokeThickness: 5,
+        strokeThickness: 3,
         dropShadow: true,
         dropShadowColor: '#000000',
-        dropShadowBlur: 4,
+        dropShadowBlur: 2,
         dropShadowAngle: Math.PI / 6,
-        dropShadowDistance: 6,
+        dropShadowDistance: 4,
         wordWrap: true,
         wordWrapWidth: 440,
         lineJoin: 'round',
@@ -114,6 +114,28 @@ export class LoaderScene extends Container implements IScene {
         resolution: CustomResolution,
         chars:
           Loader.shared.resources['fontText'].data.required.join(''),
+      },
+    );
+
+    BitmapFont.from(
+      'FullComboRocknRoll',
+      {
+        fontFamily: 'RocknRoll One',
+        fontSize: 96,
+        fontStyle: 'italic',
+        fontWeight: 'bold',
+        fill: ['#ffffff', '#e6c422'], // gradient
+        stroke: '#ffa200',
+        strokeThickness: 2,
+        dropShadow: true,
+        dropShadowColor: '#000000',
+        dropShadowBlur: 4,
+        dropShadowDistance: 4,
+        lineJoin: 'round',
+      },
+      {
+        resolution: CustomResolution,
+        chars: 'FULLCOMBO',
       },
     );
   }

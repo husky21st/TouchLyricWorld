@@ -1,6 +1,6 @@
 import { Container, Texture, Sprite, Graphics, BitmapText, Text, LINE_JOIN, LINE_CAP, ILineStyleOptions, utils } from 'pixi.js';
 
-//based 1500/700 screen
+//based 1600/800 screen
 export class LoadingGame extends Container {
   private frame: Sprite;
   private spaceLine: Graphics;

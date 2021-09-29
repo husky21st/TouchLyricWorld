@@ -5,8 +5,23 @@ import { IScene, Manager } from 'libs/manages/Manager';
 import { LoadingGame } from 'libs/tools/containers/LoadingGame';
 import { TouchLine } from 'libs/tools/containers/TouchLine';
 import { LyricText } from 'libs/tools/containers/LyricText';
+import { Result } from 'libs/tools/containers/Result';
 import { CharInfo, PhraseInfo, POINT } from 'libs/tools/others/types';
 import { MoveTextTypes } from 'libs/tools/others/MoveTextTypes';
+
+
+
+const fixScore7Text = (score: number):string => {
+  const newScore: number = Math.round(score);
+  return ('0000000' + newScore).slice(-7)
+}
+
+const fixScore5Text = (score: number):string => {
+  const newScore: number = Math.round(score);
+  return ('00000' + newScore).slice(-5)
+}
+
+
 
 export class GameScene extends Container implements IScene {
   //for Pixi
@@ -14,6 +29,7 @@ export class GameScene extends Container implements IScene {
   private isGameNow: boolean;
   private fontLoaded: boolean;
   private _LoadingGame: LoadingGame;
+  private _Result: Result;
   private _LyricText: LyricText | null = null;
   private _BeatSprite: BeatSprite | null = null;
   private _ScoreText: ScoreText | null = null;
@@ -22,11 +38,12 @@ export class GameScene extends Container implements IScene {
   private fakeBG: Graphics;
   private playButton: Sprite;
   private pauseButton: Sprite;
-  private returnToMenu: BitmapText;
+  private backToMenu: BitmapText;
   private bg: Graphics;
   //for TextAlive
   private _player: Player;
   private SONGURL: number;
+  private isFirst: boolean;
   private charBuffer: IChar | null = null;
   private phraseBuffer: IPhrase | null = null;
   private beatBuffer: IBeat | null = null;
@@ -35,6 +52,7 @@ export class GameScene extends Container implements IScene {
   private bonusScore: number;
   private beatTouched: boolean;
   private beatOnce: boolean;
+  private maxCombo: number;
   //Others
   private _MoveTextTypes: MoveTextTypes | null = null;
   constructor(songURL: number = 5) {
@@ -64,6 +82,15 @@ export class GameScene extends Container implements IScene {
       repeat: -1,
       ease: 'none'
     });
+
+    this._Result = new Result();
+    this._Result.pivot.set(800, 400);
+    this._Result.position.set(WR * 50, HR * 50);
+    this._Result.scale.set(HR * 0.08);
+    this._Result.zIndex = 9999;
+    this._Result.alpha = 0;
+    this._Result.visible = false;
+    this.addChild(this._Result);
 
     this._SomeSprite = new SomeSprite();
     this.addChild(this._SomeSprite);
@@ -120,21 +147,22 @@ export class GameScene extends Container implements IScene {
     this.pauseButton.on('pointertap', this._requestPause, this);
     this.addChild(this.pauseButton);
 
-    this.returnToMenu = new BitmapText("Return to Menu", {fontName: 'BasicRocknRoll', tint: 0x333333, fontSize: 64 });
-    this.returnToMenu.anchor.set(0.5);
-    this.returnToMenu.position.set(WR * 50, HR * 75);
-    this.returnToMenu.scale.set(TR * 1.4);
-    this.returnToMenu.interactive = true;
-    this.returnToMenu.buttonMode = true;
-    this.returnToMenu.visible = false;
-    this.returnToMenu.on('pointertap', this._returnToMenuScene, this);
-    this.addChild(this.returnToMenu);
+    this.backToMenu = new BitmapText("Back to Menu", {fontName: 'BasicRocknRoll', tint: 0x333333, fontSize: 64 });
+    this.backToMenu.anchor.set(0.5);
+    this.backToMenu.position.set(WR * 50, HR * 75);
+    this.backToMenu.scale.set(TR * 1.4);
+    this.backToMenu.interactive = true;
+    this.backToMenu.buttonMode = true;
+    this.backToMenu.visible = false;
+    this.backToMenu.on('pointertap', this._backToMenu, this);
+    this.addChild(this.backToMenu);
 
 
     /**
      * TextAlive Init Setting
      */
     this.SONGURL = songURL;
+    this.isFirst = true;
     this._player = new Player({
       app: { token: process.env.NEXT_PUBLIC_API_TOKEN || '' },
       // V : due to unknown font loading timing -> pixi-webfont-loader
@@ -159,6 +187,7 @@ export class GameScene extends Container implements IScene {
     this.bonusScore = 0;
     this.beatTouched = false;
     this.beatOnce = false;
+    this.maxCombo = 0;
 
     //this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
   }
@@ -259,6 +288,7 @@ export class GameScene extends Container implements IScene {
     this._BeatSprite = new BeatSprite();
     this._BeatSprite.zIndex = -100;
     this.addChild(this._BeatSprite);
+    this.maxCombo = video.charCount;
     this.basedScore = 1000000 / video.charCount;
     this.bonusScore = 10000 / (lastBeat.index + 1);
     this._ScoreText = new ScoreText(this.basedScore, this.bonusScore);
@@ -306,9 +336,6 @@ export class GameScene extends Container implements IScene {
     gsap.killTweensOf(this._LoadingGame);
     this._LoadingGame.visible = false;
     this.fakeBG.visible = false;
-    this.charBuffer = null;
-    this.phraseBuffer = null;
-    this.beatBuffer = null;
     this.pauseButton.visible = true;
     window.addEventListener('keyup', (event: KeyboardEvent) => {this.keyEvent(event)});
     this.bg.on('touchstart', this._beatTocuh, this);
@@ -320,7 +347,16 @@ export class GameScene extends Container implements IScene {
   private _requestPlay(): void {
     console.log('REQUESTPLAY');
     //this._player.requestStageUpdate();
-    this._player.requestPlay();
+    if(this.isFirst){
+      this._player.requestMediaSeek(0);
+      this.charBuffer = null;
+      this.phraseBuffer = null;
+      this.beatBuffer = null;
+      this.isFirst = false;
+    }
+    setTimeout(() => {
+      this._player.requestPlay();
+    }, 100);
   }
 
   private _requestPause(): void {
@@ -329,6 +365,7 @@ export class GameScene extends Container implements IScene {
 
   private _onPlay(): void {
     //check -> Player.isPlaying
+    if(this.isFirst) return;
     console.log('%c!Play', 'color: aqua');
     this.hidePauseScreen();
     this.isGameNow = true;
@@ -338,12 +375,16 @@ export class GameScene extends Container implements IScene {
 
   private _onPause(): void {
     //check -> Player.isPlaying
+    if(this.isFirst) return;
     console.log('%c!Pause', 'color: aqua');
     if(this._player.video.endTime < this._player.timer.position){
       console.log('END');
+      this.handleResultScreen()
     }else if(10 < this._player.timer.position){
       console.log('NOT END');
       this.showPauseScreen();
+      //debug
+      //this.handleResultScreen();
     }
     this.isGameNow = false;
     this.bg.visible = false;
@@ -353,13 +394,13 @@ export class GameScene extends Container implements IScene {
     this.fakeBG.alpha = 1;
     this.fakeBG.visible = true;
     this.playButton.visible = true;
-    this.returnToMenu.visible = true;
+    this.backToMenu.visible = true;
   }
 
   private hidePauseScreen(): void {
     this.fakeBG.visible = false;
     this.playButton.visible = false;
-    this.returnToMenu.visible = false;
+    this.backToMenu.visible = false;
   }
 
   private _onTimeUpdate(pos: number): void {
@@ -532,12 +573,64 @@ export class GameScene extends Container implements IScene {
     this.fontLoaded = true;
   }
 
-  private _returnToMenuScene(): void {
-    //V : I don't know why it's not workingx()
-    //this._player.dispose();
-    //Manager._media.style.visibility = 'hidden'
-    //Manager.changeScene(new GameMenuScene());
+  private _backToMenu(): void {
     window.location.reload();
+  }
+
+  private handleResultScreen(): void {
+    if(!this._ScoreText || !this._BeatSprite) return;
+    Manager._media.style.visibility = 'hidden'
+    gsap.to([this._BeatSprite.iloveMiku, this._ScoreText, this.pauseButton], {
+      pixi: {alpha: 0},
+      duration: 1,
+    });
+    const isFullCombo: boolean = this._ScoreText.combo >= this.maxCombo;
+    if(!isFullCombo){
+      this._Result.full.visible = false;
+      this._Result.combo.visible = false;
+    }
+    const totalScore: number = this._ScoreText.score + this._ScoreText.bonus;
+    const tickBasedValue: number = totalScore / 240;
+    let tickValue: number = tickBasedValue;
+    this._Result.visible =true;
+    const resultScreenTL: gsap.core.Timeline = gsap.timeline();
+    resultScreenTL
+      .to(this._Result, {
+        pixi: {alpha: 1},
+        duration: 0.5
+      })
+      .to([this._Result.scoreText, this._Result.scoreNumber], {
+        pixi: {alpha : 1},
+        duration: 0.5,
+      });
+    const resultScoreTL: gsap.core.Timeline = gsap.timeline();
+    resultScoreTL
+      .to(this._Result.scoreNumber, {
+        onUpdate: () => {
+          this._Result.scoreNumber.text = fixScore7Text(tickValue);
+          tickValue += tickBasedValue;
+        },
+        onComplete: () => {this._Result.scoreNumber.text = fixScore7Text(totalScore)},
+        duration: 4,
+      })
+      .to(this._Result.full, {
+        pixi:{
+           y: 400,
+           alpha: 1,
+        },
+        duration: 2,
+        delay: 1,
+        ease: 'power3',
+      })
+      .to(this._Result.combo, {
+        pixi:{
+           y: 400,
+           alpha: 1,
+        },
+        duration: 2,
+        delay: -2,
+        ease: 'power3',
+      });
   }
 
 
@@ -576,7 +669,7 @@ export class MoveLyricText {
           x: (to.x + Math.cos(radian) ) * this.W,
           y: (to.y - Math.sin(radian) ) * this.WtoH,
         },
-        duration: 0.75,
+        duration: 0.7,
         ease: 'none',
         onComplete: () => {charTextBox.Reached = true;}
       })
@@ -585,7 +678,7 @@ export class MoveLyricText {
           alpha: 0
         },
         duration: 0.5,
-        delay: (Duration + 100) / 1000,
+        delay: (Duration + 150) / 1000,
         ease: 'none',
         onComplete: () => {
           charTextBox.TextBox.visible = false;
@@ -676,18 +769,6 @@ class SomeSprite extends Container {
 
 
 
-const fixScore7Text = (score: number):string => {
-  const newScore: number = Math.round(score);
-  return ('0000000' + newScore).slice(-7)
-}
-
-const fixScore5Text = (score: number):string => {
-  const newScore: number = Math.round(score);
-  return ('00000' + newScore).slice(-5)
-}
-
-
-
 /**
  * 
  * ScoreText Class
@@ -714,41 +795,41 @@ export class ScoreText extends Container {
     this.combo = 0;
     this.bonus = 0;
 
-    this.scoreText = new BitmapText('SCORE', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.scoreText = new BitmapText('SCORE', { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 48 });
     this.scoreText.anchor.set(1);
-    this.scoreText.position.set(WR * 88, HR * 98.5);
+    this.scoreText.position.set(WR * 88, HR * 97.5);
     this.scoreText.scale.set(TR);
     this.addChild(this.scoreText);
 
-    this.scoreNumber = new BitmapText(fixScore7Text(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.scoreNumber = new BitmapText(fixScore7Text(0), { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 48 });
     this.scoreNumber.anchor.set(1);
-    this.scoreNumber.position.set(WR * 101, HR * 98.5);
+    this.scoreNumber.position.set(WR * 101, HR * 97.5);
     this.scoreNumber.scale.set(TR);
     this.addChild(this.scoreNumber);
 
-    this.comboText = new BitmapText('COMBO', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
+    this.comboText = new BitmapText('COMBO', { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 32 });
     this.comboText.anchor.set(1);
-    this.comboText.position.set(WR * 96, HR * 88.5);
+    this.comboText.position.set(WR * 96, HR * 85.5);
     this.comboText.scale.set(TR);
     this.comboText.alpha = 0;
     this.addChild(this.comboText);
 
-    this.comboNumber = new BitmapText('0', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 32 });
+    this.comboNumber = new BitmapText('0', { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 32 });
     this.comboNumber.anchor.set(1);
-    this.comboNumber.position.set(WR * 100.5, HR * 88.5);
+    this.comboNumber.position.set(WR * 100.5, HR * 85.5);
     this.comboNumber.scale.set(TR);
     this.comboNumber.alpha = 0;
     this.addChild(this.comboNumber);
 
-    this.bonusText = new BitmapText('BONUS', { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.bonusText = new BitmapText('BONUS', { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 48 });
     this.bonusText.anchor.set(1);
-    this.bonusText.position.set(WR * 92, HR * 93.5);
+    this.bonusText.position.set(WR * 92, HR * 91.5);
     this.bonusText.scale.set(TR);
     this.addChild(this.bonusText);
 
-    this.bonusNumber = new BitmapText(fixScore5Text(0), { fontName: 'ScoreRocknRoll', tint: 0x02cccc, fontSize: 48 });
+    this.bonusNumber = new BitmapText(fixScore5Text(0), { fontName: 'ScoreRocknRoll', tint: 0xabffff, fontSize: 48 });
     this.bonusNumber.anchor.set(1);
-    this.bonusNumber.position.set(WR * 101, HR * 93.5);
+    this.bonusNumber.position.set(WR * 101, HR * 91.5);
     this.bonusNumber.scale.set(TR);
     this.addChild(this.bonusNumber);
   }
@@ -779,7 +860,7 @@ export class ScoreText extends Container {
       this.comboNumber.text = backCombo.toString();
       this.comboText.alpha = 1;
       this.comboNumber.alpha = 1;
-      this.comboNumber.y = Manager.hr * 88.5;
+      this.comboNumber.y = Manager.hr * 85.5;
       gsap
         .to(this.comboNumber, {
           pixi: {
@@ -794,7 +875,7 @@ export class ScoreText extends Container {
             this.comboNumber.text = this.combo.toString();
             this.comboText.alpha = 1;
             this.comboNumber.alpha = 1;
-            this.comboNumber.y = Manager.hr * 88.5;
+            this.comboNumber.y = Manager.hr * 85.5;
           }
         });
     }
@@ -811,7 +892,7 @@ export class ScoreText extends Container {
     this.bonusNumber.text = fixScore5Text(backBonus);
     this.bonusText.alpha = 1;
     this.bonusNumber.alpha = 1;
-    this.bonusNumber.y = Manager.hr * 93.5;
+    this.bonusNumber.y = Manager.hr * 91.5;
     gsap
       .to(this.bonusNumber, {
         pixi: {
@@ -826,7 +907,7 @@ export class ScoreText extends Container {
           this.bonusNumber.text = fixScore5Text(this.bonus);
           this.bonusText.alpha = 1;
           this.bonusNumber.alpha = 1;
-          this.bonusNumber.y = Manager.hr * 93.5;
+          this.bonusNumber.y = Manager.hr * 91.5;
         }
       });
   }

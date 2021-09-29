@@ -31,5 +31,7 @@ export const assets = [
   { name: 'songTitle6', url: 'TitleMaterials/songTitle6.png'},
   { name: 'loopBack', url: 'Shapes/cycle.svg'},
   { name: 'gamePlayButton', url: 'Shapes/play.svg'},
-  { name: 'gamePauseButton', url: 'Shapes/pause.svg'}
+  { name: 'gamePauseButton', url: 'Shapes/pause.svg'},
+  { name: 'resultText', url: 'Shapes/resultText.png'},
+  { name: 'twitterLogo', url: 'Shapes/twitter.png'}
 ];
