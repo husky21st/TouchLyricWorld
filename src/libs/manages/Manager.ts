@@ -11,13 +11,9 @@ export class Manager {
 
   private static _width: number;
   private static _height: number;
-  //private static _scaleRatioX: number;
-  //private static _scaleRatioY: number;
 
-  public static isSafari: boolean;
   //for TextAliveApp
   public static _media: HTMLElement;
-  public static _song: string;
 
   //getter
   public static get width(): number {
@@ -35,22 +31,13 @@ export class Manager {
   public static get textScale(): number {
     return Manager._width / 2000;
   }
-  //public static get scaleRatioX(): number {
-  //  return Manager._scaleRatioX;
-  //}
-  //public static get scaleRatioY(): number {
-  //  return Manager._scaleRatioY;
-  //}
 
   public static initialize(canvas: HTMLCanvasElement, mediaElement: HTMLDivElement, width: number, height: number): void {
     console.log('Manager_init');
     // store our width and height
     Manager._width = width;
     Manager._height = height;
-    //Manager._scaleRatioX = 1;
-    //Manager._scaleRatioY = 1;
 
-    
     // Create our pixi app
     Manager.app = new PIXI.Application({
       view: canvas,
@@ -61,7 +48,8 @@ export class Manager {
       width: width,
       height: height,
     });
-    
+
+    console.log(PIXI.utils.isMobile);
     //plugin entry for gsap
     gsap.registerPlugin(PixiPlugin);
     PixiPlugin.registerPIXI(PIXI);
@@ -71,7 +59,9 @@ export class Manager {
 
     //other setting
     PIXI.TextMetrics.BASELINE_SYMBOL += 'あぽ｜';
-    
+
+
+
     // Add the ticker
     Manager.app.ticker.stop();
     gsap.ticker.fps(60);
@@ -81,31 +71,15 @@ export class Manager {
     Manager.app.ticker.add(Manager.update);
     
     Manager._media = mediaElement as HTMLElement;
+    Manager._media.style.visibility = 'hidden';
     
     Manager.ManagerInitSetting();
   }
 
   //browser Check
   private static ManagerInitSetting(): void {
-    const _userAgent: string = window.navigator.userAgent.toLowerCase();
-    console.log(_userAgent);
-    this.isSafari = false;
-    if (_userAgent.indexOf('edge') != -1) {
-      console.log('use Edge');
-    } else if (_userAgent.indexOf('chrome') != -1) {
-      console.log('use Google Chrome');
-    } else if (_userAgent.indexOf('safari') != -1) {
-      console.log('use Safari');
-      this.isSafari = true;
-    } else if (_userAgent.indexOf('firefox') != -1) {
-      console.log('use FireFox');
-    } else if (_userAgent.indexOf('opera') != -1) {
-      console.log('use Opera');
-    } else {
-      console.log('undefined');
-      this.isSafari = true;
-    }
-    if (this.isSafari) {
+    PIXI.Loader.shared.destroy();
+    if (PIXI.utils.isMobile.apple.device) {
       PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL;
     }
   }

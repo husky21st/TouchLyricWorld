@@ -1,12 +1,9 @@
-import { Container, Texture, Sprite, Graphics, Loader, Text, BitmapFont } from 'pixi.js';
-import { sound } from '@pixi/sound';
+import { Container, Texture, Sprite, Graphics, Loader, Text, BitmapFont, utils } from 'pixi.js';
 import { gsap } from 'gsap';
 import { assets } from 'libs/asset/assets';
 import { IScene, Manager } from 'libs/manages/Manager';
 import { SuggestLandscapeModeScene } from 'libs/scenes/SuggestLandscapeModeScene';
 import { GameMenuScene } from 'libs/scenes/GameMenuScene';
-//for develop
-import { GameScene } from 'libs/scenes/GameScene';
 
 export class LoaderScene extends Container implements IScene {
   private _LoadingFlower: LoadingFlower;
@@ -19,6 +16,7 @@ export class LoaderScene extends Container implements IScene {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
+    utils.destroyTextureCache();
     this.sortableChildren = true;
     this.tick = 0;
 
@@ -40,7 +38,6 @@ export class LoaderScene extends Container implements IScene {
     this._LoadingFlower.alpha = 0.5;
     this.addChild(this._LoadingFlower);
 
-    //Loader.shared.reset();
     Loader.shared.add(assets);
     
     Loader.shared.onProgress.add(this.downloadProgress, this);
@@ -77,15 +74,17 @@ export class LoaderScene extends Container implements IScene {
 
   private initSetting(): void {
     //this.setAssetsVolume();
+    let CustomResolution: number = 2;
+    if(utils.isMobile.any)CustomResolution = 1;
     BitmapFont.from(
       'BasicRocknRoll',
       {
         fontFamily: 'RocknRoll One',
         fill: '#ffffff',
-        fontSize: 64,
+        fontSize: 96,
       },
       {
-        resolution: 2,
+        resolution: CustomResolution,
         chars:
           Loader.shared.resources['fontText'].data.required.join('') +
           Loader.shared.resources['fontText'].data.text.join(''),
@@ -112,17 +111,11 @@ export class LoaderScene extends Container implements IScene {
         lineJoin: 'round',
       },
       {
-        resolution: 2,
+        resolution: CustomResolution,
         chars:
-          Loader.shared.resources['fontText'].data.required.join('') +
-          Loader.shared.resources['fontText'].data.text.join(''),
+          Loader.shared.resources['fontText'].data.required.join(''),
       },
     );
-  }
-
-  private setAssetsVolume(): void {
-    //sound.volume('highPointSE', 100);
-    //sound.volumeAll = 0.5;
   }
 
   private changeScene() {
@@ -131,7 +124,7 @@ export class LoaderScene extends Container implements IScene {
     if (screenWidth < screenHeight || false) {
       Manager.changeScene(new SuggestLandscapeModeScene());
     } else {
-      Manager.changeScene(new GameScene());
+      Manager.changeScene(new GameMenuScene());
     }
   }
 

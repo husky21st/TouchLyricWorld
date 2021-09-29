@@ -1,8 +1,8 @@
-import { Container, Texture, Sprite, Graphics, BitmapText, Text, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, Point, DisplayObject } from 'pixi.js';
+import { Container, Texture, Sprite, Graphics, BitmapText, filters, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, DisplayObject, utils } from 'pixi.js';
 import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer } from 'textalive-app-api';
-import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
-import { SoundLoader } from '@pixi/sound';
+import { IScene, Manager } from 'libs/manages/Manager';
+import { LoadingGame } from 'libs/tools/containers/LoadingGame';
 import { TouchLine } from 'libs/tools/containers/TouchLine';
 import { LyricText } from 'libs/tools/containers/LyricText';
 import { CharInfo, PhraseInfo, POINT } from 'libs/tools/others/types';
@@ -13,27 +13,31 @@ export class GameScene extends Container implements IScene {
   private phraseLineNumber: number;
   private isGameNow: boolean;
   private fontLoaded: boolean;
-  private _TestText: TestText | null;
-  private _LyricText: LyricText | null;
-  private _BeatSprite: BeatSprite | null;
-  private _ScoreText: ScoreText | null;
+  private _LoadingGame: LoadingGame;
+  private _LyricText: LyricText | null = null;
+  private _BeatSprite: BeatSprite | null = null;
+  private _ScoreText: ScoreText | null = null;
   private _SomeSprite: SomeSprite;
   private _TouchLine: TouchLine;
+  private fakeBG: Graphics;
+  private playButton: Sprite;
+  private pauseButton: Sprite;
+  private returnToMenu: BitmapText;
   private bg: Graphics;
   //for TextAlive
   private _player: Player;
   private SONGURL: number;
-  private charBuffer: IChar | null;
-  private phraseBuffer: IPhrase | null;
-  private beatBuffer: IBeat | null;
+  private charBuffer: IChar | null = null;
+  private phraseBuffer: IPhrase | null = null;
+  private beatBuffer: IBeat | null = null;
   private beatDuration: number;
-  private beatLength: number;
   private basedScore: number;
   private bonusScore: number;
   private beatTouched: boolean;
+  private beatOnce: boolean;
   //Others
-  private _MoveTextTypes: MoveTextTypes | null;
-  constructor(songURL: number = 3) {
+  private _MoveTextTypes: MoveTextTypes | null = null;
+  constructor(songURL: number = 5) {
     super();
     /**
      * PIXI Init Setting
@@ -47,9 +51,19 @@ export class GameScene extends Container implements IScene {
     this.phraseLineNumber = 0;
     this.isGameNow = false;
     this.fontLoaded = false;
-    this._TestText = null;
-    this._LyricText = null;
-    this._BeatSprite = null;
+
+    this._LoadingGame = new LoadingGame();
+    this._LoadingGame.pivot.set(800, 400);
+    this._LoadingGame.position.set(WR * 50, HR * 50);
+    this._LoadingGame.scale.set(HR * 0.08);
+    this._LoadingGame.zIndex = 10000;
+    this.addChild(this._LoadingGame);
+    gsap.to(this._LoadingGame.loadingCycle, {
+      pixi: {rotation: -359},
+      duration: 2,
+      repeat: -1,
+      ease: 'none'
+    });
 
     this._SomeSprite = new SomeSprite();
     this.addChild(this._SomeSprite);
@@ -58,7 +72,6 @@ export class GameScene extends Container implements IScene {
     this._TouchLine.scale.set(WR * 100 / 1920, HR * 100 / 1080);
     this.addChild(this._TouchLine);
 
-    this._ScoreText = null;
     //this._ScoreText = new ScoreText();
     //this.addChild(this._ScoreText);
 
@@ -76,7 +89,46 @@ export class GameScene extends Container implements IScene {
     this.bg.visible = false;
     this.addChild(this.bg);
 
-    window.addEventListener('keyup', (event: KeyboardEvent) => {this.keyEvent(event)});
+    this.fakeBG = new Graphics()
+      .beginFill(0x000000, 0.3)
+      .drawRect(0, 0, WR * 100, HR * 100)
+      .endFill();
+    this.fakeBG.zIndex = 999;
+    this.addChild(this.fakeBG);
+
+    this.playButton = Sprite.from('gamePlayButton');
+    this.playButton.anchor.set(0.5);
+    this.playButton.position.set(WR * 50, HR * 50);
+    this.playButton.scale.set(WR * 0.03);
+    this.playButton.alpha = 0.5;
+    this.playButton.zIndex = 1500;
+    this.playButton.interactive = true;
+    this.playButton.buttonMode = true;
+    this.playButton.visible = false;
+    this.playButton.on('pointertap', this._requestPlay, this);
+    this.addChild(this.playButton);
+
+    this.pauseButton = Sprite.from('gamePauseButton');
+    this.pauseButton.anchor.set(0.5);
+    this.pauseButton.position.set(WR * 50, HR * 2.5);
+    this.pauseButton.scale.set(WR * 0.007);
+    this.pauseButton.alpha = 0.5;
+    this.pauseButton.zIndex = 500;
+    this.pauseButton.interactive = true;
+    this.pauseButton.buttonMode = true;
+    this.pauseButton.visible = true;
+    this.pauseButton.on('pointertap', this._requestPause, this);
+    this.addChild(this.pauseButton);
+
+    this.returnToMenu = new BitmapText("Return to Menu", {fontName: 'BasicRocknRoll', tint: 0x333333, fontSize: 64 });
+    this.returnToMenu.anchor.set(0.5);
+    this.returnToMenu.position.set(WR * 50, HR * 75);
+    this.returnToMenu.scale.set(TR * 1.4);
+    this.returnToMenu.interactive = true;
+    this.returnToMenu.buttonMode = true;
+    this.returnToMenu.visible = false;
+    this.returnToMenu.on('pointertap', this._returnToMenuScene, this);
+    this.addChild(this.returnToMenu);
 
 
     /**
@@ -102,19 +154,12 @@ export class GameScene extends Container implements IScene {
       onTimeUpdate: (pos: number) => this._onTimeUpdate(pos),
     });
 
-    this.charBuffer = null;
-    this.phraseBuffer = null;
-    this.beatBuffer = null;
     this.beatDuration = 3000;
-    this.beatLength = 4;
     this.basedScore = 0;
     this.bonusScore = 0;
     this.beatTouched = false;
+    this.beatOnce = false;
 
-    /**
-     * Others Init Setting
-     */
-    this._MoveTextTypes = null;
     //this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
   }
 
@@ -122,7 +167,7 @@ export class GameScene extends Container implements IScene {
     //check -> Player.app.managed
     console.log('%c!AppReady', 'color: aqua');
     if (!app.songUrl) {
-      if(this.SONGURL === 0){
+      if(this.SONGURL === 1){
         // blues / First Note
         // https://piapro.jp/t/FDb1/20210213190029
         this._player.createFromSongUrl("https://piapro.jp/t/FDb1/20210213190029", {
@@ -135,31 +180,7 @@ export class GameScene extends Container implements IScene {
             lyricDiffId: 5093,
           },
         });
-      }else if(this.SONGURL === 1){
-        // chiquewa / Freedom!
-        this._player.createFromSongUrl("https://www.youtube.com/watch?v=pAaD4Hta0ns", {
-          video: {
-            // 音楽地図訂正履歴: https://songle.jp/songs/2121403/history
-            beatId: 3953761,
-            repetitiveSegmentId: 2099586,
-            // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FN--x%2F20210204215604
-            lyricId: 52094,
-            lyricDiffId: 5171,
-          },
-        });
       }else if(this.SONGURL === 2){
-        // ラテルネ / その心に灯る色は
-        this._player.createFromSongUrl("http://www.youtube.com/watch?v=bMtYf3R0zhY", {
-          video: {
-            // 音楽地図訂正履歴: https://songle.jp/songs/2121404/history
-            beatId: 3953902,
-            repetitiveSegmentId: 2099660,
-            // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/www.youtube.com%2Fwatch%3Fv=bMtYf3R0zhY
-            lyricId: 52093,
-            lyricDiffId: 5177,
-          },
-        });
-      }else if(this.SONGURL === 3){
         // 真島ゆろ / 嘘も本当も君だから
         this._player.createFromSongUrl("https://www.youtube.com/watch?v=Se89rQPp5tk", {
           video: {
@@ -169,6 +190,18 @@ export class GameScene extends Container implements IScene {
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FYW_d%2F20210206123357
             lyricId: 52061,
             lyricDiffId: 5123,
+          },
+        });
+      }else if(this.SONGURL === 3){
+        // ラテルネ / その心に灯る色は
+        this._player.createFromSongUrl("http://www.youtube.com/watch?v=bMtYf3R0zhY", {
+          video: {
+            // 音楽地図訂正履歴: https://songle.jp/songs/2121404/history
+            beatId: 3953902,
+            repetitiveSegmentId: 2099660,
+            // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/www.youtube.com%2Fwatch%3Fv=bMtYf3R0zhY
+            lyricId: 52093,
+            lyricDiffId: 5177,
           },
         });
       }else if(this.SONGURL === 4){
@@ -183,7 +216,7 @@ export class GameScene extends Container implements IScene {
             lyricDiffId: 5133,
           },
         });
-      }else{
+      }else if(this.SONGURL === 5){
         // 濁茶 / 密かなる交信曲
         this._player.createFromSongUrl("http://www.youtube.com/watch?v=Ch4RQPG1Tmo", {
           video: {
@@ -194,6 +227,18 @@ export class GameScene extends Container implements IScene {
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/www.youtube.com%2Fwatch%3Fv=Ch4RQPG1Tmo
             lyricId: 52063,
             lyricDiffId: 5149,
+          },
+        });
+      }else{
+        // chiquewa / Freedom!
+        this._player.createFromSongUrl("https://www.youtube.com/watch?v=pAaD4Hta0ns", {
+          video: {
+            // 音楽地図訂正履歴: https://songle.jp/songs/2121403/history
+            beatId: 3953761,
+            repetitiveSegmentId: 2099586,
+            // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FN--x%2F20210204215604
+            lyricId: 52094,
+            lyricDiffId: 5171,
           },
         });
       }
@@ -219,52 +264,76 @@ export class GameScene extends Container implements IScene {
     this._ScoreText = new ScoreText(this.basedScore, this.bonusScore);
     this.addChild(this._ScoreText);
     this._MoveTextTypes = new MoveTextTypes(this._ScoreText);
-    this.bg.on('touchstart', this._beatTocuh, this);
     this.changeStyle();
-    this.fontLoad(video);
+    setTimeout(() => {
+      this.fontLoad(video);
+    }, 1000);
   }
 
   private _onTimerReady(timer: Timer): void {
     console.log('%c!TimerReady', 'color: aqua');
-    //console.log('timer', timer);
-    //console.log('DBANNER', this._player.banner);   
-    //console.log('DATA', this._player.data);
-    //console.log('listAvailableFonts', this._player.data.fonts.listAvailableFonts());
-    //console.log('lyricsBody', this._player.data.lyricsBody);
-    //console.log('songmap', this._player.data.songMap);
-    //console.log('songstatus', this._player.data.songStatus);
-    //console.log('getBeats', this._player.data.getBeats());
-    //console.log('getChords', this._player.data.getChords());
-    //console.log('getChoruses', this._player.data.getChoruses());
-    //console.log('VIDEO', this._player.video);
-    //console.log('-----------------------------');
-    //console.log('Char1', this._player.video.firstChar.text);
-    //console.log('Char2', this._player.video.firstChar.next.text);
-    //console.log('Char3', this._player.video.firstChar.next.next);
-    //console.log('Word1', this._player.video.firstWord.text);
-    //console.log('Word2', this._player.video.firstWord.next.text);
-    //console.log('Word3', this._player.video.firstWord.next.next);
-    //console.log('Phrase1', this._player.video.firstPhrase.text);
-    //console.log('Phrase2', this._player.video.firstPhrase.next.text);
-    //console.log('Phrase3', this._player.video.firstPhrase.next.next);
-    //const a = this._player.video.firstChar.next.next;
-    //const c = this._player.video.firstPhrase.next.next;
-    //const startTime = performance.now();
-    //// @ts-ignore Avoid type checking : Char -> RenderingUnit
-    //console.log('cccc', this._player.video.findIndex(this._player.video.lastChar));
-    //const endTime1 = performance.now();
-    //// @ts-ignore Avoid type checking : Phrase -> RenderingUnit
-    //console.log('cccc', this._player.video.findIndex(this._player.video.lastPhrase));
-    //const endTime2 = performance.now();
-    //console.log(endTime1 - startTime);
-    //console.log(endTime2 - endTime1);
+    setTimeout(() => {
+      this.showStartButton();
+    }, 2000);
+  }
+
+  private showStartButton(): void {
+    const showStartTL: gsap.core.Timeline = gsap.timeline();
+    showStartTL
+      .to(this._LoadingGame.loadingNow, {
+        pixi: {alpha: 0},
+        duration: 0.5
+      })
+      .to(this._LoadingGame.startButton, {
+        pixi: {alpha: 1},
+        duration: 0.5,
+        onComplete: () => {this._LoadingGame.startButton.on('pointertap', this.handleStartButton, this);},
+      });
+  }
+
+  private handleStartButton(): void {
+    if(!this.fontLoaded) return;
+    const startButtonTL: gsap.core.Timeline = gsap.timeline();
+    startButtonTL
+      .to([this._LoadingGame ,this.fakeBG] , {
+        pixi: {alpha: 0},
+        duration: 0.3,
+        onComplete: () => {this.startInitSetting()},
+      });
+  }
+
+  private startInitSetting(): void {
+    gsap.killTweensOf(this._LoadingGame);
+    this._LoadingGame.visible = false;
+    this.fakeBG.visible = false;
+    this.charBuffer = null;
+    this.phraseBuffer = null;
+    this.beatBuffer = null;
+    this.pauseButton.visible = true;
+    window.addEventListener('keyup', (event: KeyboardEvent) => {this.keyEvent(event)});
+    this.bg.on('touchstart', this._beatTocuh, this);
+    Manager._media.style.visibility = 'visible'
+    console.log('%c!StartGame', 'color: aqua');
+    this.playButton.visible = true;
+  }
+
+  private _requestPlay(): void {
+    console.log('REQUESTPLAY');
+    //this._player.requestStageUpdate();
+    this._player.requestPlay();
+  }
+
+  private _requestPause(): void {
+    this._player.requestPause();
   }
 
   private _onPlay(): void {
     //check -> Player.isPlaying
     console.log('%c!Play', 'color: aqua');
+    this.hidePauseScreen();
     this.isGameNow = true;
     this.bg.visible = true;
+    this.playButton.visible = false;
   }
 
   private _onPause(): void {
@@ -272,15 +341,29 @@ export class GameScene extends Container implements IScene {
     console.log('%c!Pause', 'color: aqua');
     if(this._player.video.endTime < this._player.timer.position){
       console.log('END');
-    }else{
+    }else if(10 < this._player.timer.position){
       console.log('NOT END');
+      this.showPauseScreen();
     }
     this.isGameNow = false;
     this.bg.visible = false;
   }
 
+  private showPauseScreen(): void {
+    this.fakeBG.alpha = 1;
+    this.fakeBG.visible = true;
+    this.playButton.visible = true;
+    this.returnToMenu.visible = true;
+  }
+
+  private hidePauseScreen(): void {
+    this.fakeBG.visible = false;
+    this.playButton.visible = false;
+    this.returnToMenu.visible = false;
+  }
+
   private _onTimeUpdate(pos: number): void {
-    if(!this._TestText || !this._LyricText || !this._BeatSprite) return;
+    if(!this._LyricText || !this._BeatSprite) return;
     //EarlyPhrase
     //const phraseEarly:
 
@@ -306,13 +389,13 @@ export class GameScene extends Container implements IScene {
     const beatNow: IBeat = this._player.findBeat(pos);
     if(beatNow && beatNow !== this.beatBuffer){
       //console.log('beat', beatNow.position);
-      this._TestText._text2.text = beatNow.position.toString();
-      this._BeatSprite.newBeat(beatNow);
+      this._BeatSprite.newBeat(beatNow.position - 1, beatNow.duration);
       this.beatBuffer = beatNow;
-      if(!this.beatTouched)this._BeatSprite.iloveMiku.alpha = 0.3;
+      if(!this.beatTouched && !this.beatOnce)this._BeatSprite.iloveMiku.alpha = 0.3;
+      this.beatOnce = false;
     }
     const beatNowProgress: number = beatNow.progress(pos);
-    if(0.3 < beatNowProgress && beatNowProgress < 0.8){
+    if(0.6 < beatNowProgress && beatNowProgress < 0.8){
       this.beatTouched = false;
     }
   }
@@ -394,22 +477,17 @@ export class GameScene extends Container implements IScene {
     if(!beatNow) return;
     const beatNowProgress: number = beatNow.progress(positionNow);
     console.log(beatNowProgress);
-    if(beatNowProgress < 0.3 || 0.8 < beatNowProgress){
+    if(beatNowProgress < 0.4 || 0.8 < beatNowProgress){
       this._BeatSprite.iloveMiku.alpha = 1;
       this._ScoreText.changeBonus();
       this.beatTouched = true;
+      this.beatOnce = true;
     }else{
       if(isKeyBoard){
         this._BeatSprite.iloveMiku.alpha = 0.3;
         this._ScoreText.changeBonus(true);
       }
     }
-  }
-
-  private _requestPlay(): void {
-    //debug
-    //this._player.requestMediaSeek(80000);
-    this._player.requestPlay();
   }
 
   private debug(): void {
@@ -419,7 +497,7 @@ export class GameScene extends Container implements IScene {
 
   private changeStyle(): void {
     const leftSize: number = Manager.wr * (100 - 19.2) / 2;
-    if (Manager.isSafari) {
+    if (utils.isMobile.apple.device) {
       Manager._media.style.left = `${leftSize}px`;
     }else {
       Manager._media.style.transform = `translate(-50%, 0%)`;
@@ -428,7 +506,7 @@ export class GameScene extends Container implements IScene {
 
   private fontLoad(video: IVideo): void {
     const allLyricText: string = this._player.data.text.replace(/\n/g, '');
-    console.log(allLyricText);
+    //console.log(allLyricText);
     Loader.shared.add(
       {
         name: 'Yusei Magic',
@@ -448,55 +526,25 @@ export class GameScene extends Container implements IScene {
 
   private fontLoadEnd(video: IVideo, allLyricText: string): void {
     if(!this._ScoreText) return;
-    this.fontLoaded = true;
     console.log('%c!fontLoaded', 'color: green');
-    this._TestText = new TestText();
-    this._TestText._text2.interactive = true;
-    this._TestText._text2.buttonMode = true;
-    this._TestText._text2.on('pointertap', this._requestPlay, this);
-    this.addChild(this._TestText);
-    const STime = performance.now();
     this._LyricText = new LyricText(video, this._ScoreText, allLyricText);
     this.addChild(this._LyricText);
-    const ETime = performance.now();
-    console.log('!!!3rd', ETime - STime);
+    this.fontLoaded = true;
   }
+
+  private _returnToMenuScene(): void {
+    //V : I don't know why it's not workingx()
+    //this._player.dispose();
+    //Manager._media.style.visibility = 'hidden'
+    //Manager.changeScene(new GameMenuScene());
+    window.location.reload();
+  }
+
+
 
   public update(): void {}
 
   public resize(): void {}
-}
-
-
-
-/**
- * 
- * TestText Class
- * 
- */
-class TestText extends Container {
-  public _text2: BitmapText;
-  private centerLine: Graphics; 
-  constructor() {
-    super();
-    const WR: number = Manager.wr;
-    const HR: number = Manager.hr;
-    const TR: number = Manager.textScale;
-
-    this._text2 = new BitmapText('0', { fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
-    this._text2.anchor.set(0.5);
-    this._text2.position.set(WR * 10, HR * 90);
-    this._text2.scale.set(TR);
-    this.addChild(this._text2);
-
-    this.centerLine = new Graphics()
-      .lineStyle(2, 0xff0000)
-      .moveTo(WR * 50, 0)
-      .lineTo(WR * 50, HR * 100)
-      .moveTo(0, HR * 50)
-      .lineTo(WR * 100, HR * 50);
-    this.addChild(this.centerLine);
-  }
 }
 
 
@@ -528,7 +576,7 @@ export class MoveLyricText {
           x: (to.x + Math.cos(radian) ) * this.W,
           y: (to.y - Math.sin(radian) ) * this.WtoH,
         },
-        duration: 0.8,
+        duration: 0.75,
         ease: 'none',
         onComplete: () => {charTextBox.Reached = true;}
       })
@@ -537,7 +585,7 @@ export class MoveLyricText {
           alpha: 0
         },
         duration: 0.5,
-        delay: (Duration + 50) / 1000,
+        delay: (Duration + 100) / 1000,
         ease: 'none',
         onComplete: () => {
           charTextBox.TextBox.visible = false;
@@ -606,15 +654,6 @@ class SomeSprite extends Container {
     this.showStartCharFlower.alpha = 0;
     this.showStartCharFlower.scale.set(WR * 0.06);
     this.addChild(this.showStartCharFlower);
-
-    gsap.to(this.showStartCharFlower,{
-      pixi: {
-        rotation: 359
-      }, 
-      duration: 3,
-      repeat: -1,
-      ease: 'none'
-    })
   }
 
   public showStartCharAnimation(point: POINT): void{
@@ -627,7 +666,8 @@ class SomeSprite extends Container {
       .to(this.showStartCharFlower, {
         pixi:{
           alpha: 1.2,
-          scale: 0
+          scale: 0,
+          rotation: '+=' + 400
         }, 
         duration:2.5
       });
@@ -645,6 +685,9 @@ const fixScore5Text = (score: number):string => {
   const newScore: number = Math.round(score);
   return ('00000' + newScore).slice(-5)
 }
+
+
+
 /**
  * 
  * ScoreText Class
@@ -760,9 +803,10 @@ export class ScoreText extends Container {
   public changeBonus(minus: boolean = false): void {
     console.log('%cBOUNUS', 'color: aqua');
     let changeValue: number = this.bonusAddScore;
-    if(minus)changeValue *= -0.1;
+    if(minus)changeValue *= -0.5;
     const backBonus: number = this.bonus;
     this.bonus += changeValue;
+    if(this.bonus < 0)this.bonus = 0;
     gsap.killTweensOf(this.bonusNumber);
     this.bonusNumber.text = fixScore5Text(backBonus);
     this.bonusText.alpha = 1;
@@ -805,14 +849,17 @@ export class ScoreText extends Container {
 class BeatSprite extends Container {
   public iloveMiku: Container;
   private dancingMiku: Array<Sprite>;
+  private beatLight: Graphics;
   private mikuTypeBuffer: number;
-  private scoreHR: number = Manager.hr * 3;
+  private basedW: number = Manager.wr;
+  private basedH: number = Manager.hr;
   constructor() {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
+    this.sortableChildren = true;
     this.iloveMiku = new Container();
     this.dancingMiku = new Array();
 
@@ -825,7 +872,7 @@ class BeatSprite extends Container {
     this.dancingMiku.push(leftMiku);
 
     const centerMiku: Sprite = Sprite.from('centerMiku');
-    centerMiku.anchor.set(0.49, 0.45);
+    centerMiku.anchor.set(0.49, 0.49);
     centerMiku.scale.set(WR * 0.02);
     centerMiku.position.set(WR * 50, HR * 60);
     centerMiku.alpha = 1;
@@ -841,45 +888,41 @@ class BeatSprite extends Container {
     this.iloveMiku.addChild(rightMiku);
     this.dancingMiku.push(rightMiku);
 
+    this.dancingMiku.push(centerMiku);
+
     this.iloveMiku.alpha = 0.3;
     this.addChild(this.iloveMiku);
     this.mikuTypeBuffer = 1;
+
+    this.beatLight = new Graphics()
+      .beginFill(0x4ffbdf)
+      .drawRect(0, HR * 90, WR * 100, HR * 80)
+      .endFill();
+    this.beatLight.zIndex = -100;
+    const blurFilter2 = new filters.BlurFilter();
+    blurFilter2.blur = 40;
+    this.beatLight.filters = [blurFilter2];
+    this.beatLight.alpha = 0.6;
+    this.addChild(this.beatLight);
   }
 
-  public newBeat(beatNow: IBeat): void{
-    let mikuType: number = 0;
-    if(beatNow.length === 3){
-      //1, 2, 3
-      if(beatNow.index % 2){
-        mikuType = beatNow.position - 1;
-      }else{
-        mikuType = 3 - beatNow.position;
-      }
-    }else{
-      //1, 2, 3, 4
-      if(beatNow.position % 2){
-        mikuType = beatNow.position - 1;
-      }else{
-        mikuType = 1;
-      }
-    }
-    
+  public newBeat(beatPos: number, beatDuration: number): void{
     const dancingMikuTL: gsap.core.Timeline = gsap.timeline();
     dancingMikuTL
       .to(this.dancingMiku[this.mikuTypeBuffer], {
         pixi: {
-          y: '-=' + this.scoreHR,
+          y: this.basedH * 58,
           alpha: 0,
         },
-        duration: (beatNow.duration - 200) / 2000,
+        duration: beatDuration / 8000,
       })
-      .to(this.dancingMiku[mikuType], {
+      .to(this.dancingMiku[beatPos], {
         pixi: {
-          y: '+=' + this.scoreHR,
+          y: this.basedH * 60,
           alpha: 1,
         },
-        duration: (beatNow.duration - 200 ) / 2000,
-        onComplete: () => {this.mikuTypeBuffer = mikuType},
+        duration: beatDuration / 8000,
+        onComplete: () => {this.mikuTypeBuffer = beatPos;}
       });
   }
 }

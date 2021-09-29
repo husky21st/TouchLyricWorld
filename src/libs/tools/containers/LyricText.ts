@@ -1,4 +1,4 @@
-import { Container, Texture, Sprite, Graphics, BitmapText, BitmapFont, Point, ILineStyleOptions, LINE_JOIN, LINE_CAP, Circle, filters, InteractionEvent } from 'pixi.js';
+import { Container, Texture, Sprite, Graphics, BitmapText, BitmapFont, Point, ILineStyleOptions, LINE_JOIN, LINE_CAP, Circle, filters, InteractionEvent, utils } from 'pixi.js';
 import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer } from 'textalive-app-api';
 import { IScene, Manager } from 'libs/manages/Manager';
 import { ScoreText } from 'libs/scenes/GameScene';
@@ -26,27 +26,18 @@ export class LyricText extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
     const startTime = performance.now();
+    let CustomResolution: number = 2;
+    if(utils.isMobile.any)CustomResolution = 1;
+
     BitmapFont.from(
       'BasicYuseiMagic',
       {
         fontFamily: 'Yusei Magic',
-        fill: '#00d2fc',
-        fontSize: 64,
-      },
-      {
-        resolution: 2,
-        chars: this.allLyricText,
-      },
-    );
-    BitmapFont.from(
-      'PhraseYuseiMagic',
-      {
-        fontFamily: 'Yusei Magic',
         fill: '#ffffff',
-        fontSize: 64,
+        fontSize: 96,
       },
       {
-        resolution: 2,
+        resolution: CustomResolution,
         chars: this.allLyricText,
       },
     );
@@ -105,18 +96,20 @@ export class LyricText extends Container {
         charTextBox.sortableChildren = true;
   
         const charText: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0x000000, fontSize: 64 });
-        charText.anchor.set(0.5, 0.55);
+        charText.anchor.set(0.5, 0.75);
         charText.scale.set(TR * 2.6);
         //charText.zIndex = 10000 - i;
         charText.zIndex = 100 * (i + 1) + j;
         charTextBox.addChild(charText);
 
-        const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0xffffff, fontSize: 64 });
-        charTextBG.anchor.set(0.5, 0.55);
+        const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0x00d2fc, fontSize: 64 });
+        charTextBG.anchor.set(0.5, 0.75);
         charTextBG.scale.set(TR * 2.7);
         charTextBG.zIndex = 100 * (i + 1) + j - 100000;
         charTextBG.alpha = 0;
         charTextBox.addChild(charTextBG);
+        charText.cacheAsBitmap = false;
+        charTextBG.cacheAsBitmap = false;
 
         const blurFilter1 = new filters.BlurFilter();
         charTextBG.filters = [blurFilter1];
@@ -205,7 +198,7 @@ export class LyricText extends Container {
       }
 
       //set phraseText
-      const phraseText: BitmapText = new BitmapText(p.text, {fontName: 'PhraseYuseiMagic', tint: 0x000000, fontSize: 64 });
+      const phraseText: BitmapText = new BitmapText(p.text, {fontName: 'BasicYuseiMagic', tint: 0x000000, fontSize: 64 });
       phraseText.anchor.set(0.5);
       phraseText.scale.set(TR);
       phraseText.zIndex = i;

@@ -2,8 +2,6 @@ import { Container, Graphics, BitmapText, InteractionEvent } from 'pixi.js';
 import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
 import { GameMenuScene } from 'libs/scenes/GameMenuScene';
-//for develop
-import { GameScene } from 'libs/scenes/GameScene';
 
 let resizeTimer: number = 0;
 const resizeCheck = (): void => {
@@ -30,10 +28,10 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
 
     window.addEventListener('resize', resizeCheck);
 
-    this.suggestText1 = new BitmapText("横画面推奨です", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 128 });
+    this.suggestText1 = new BitmapText("横画面推奨です", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
     this.suggestText1.anchor.set(0.5);
     this.suggestText1.position.set(WR * 50, HR * 40);
-    this.suggestText1.scale.set(TR);
+    this.suggestText1.scale.set(TR * 2);
     this.addChild(this.suggestText1);
 
     this.suggestText2 = new BitmapText("please play the game in landscape mode", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 64 });
@@ -64,10 +62,11 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
   }
 
   private goGameMenuScene(): void {
+    this.continueButton.interactive = false;
     window.removeEventListener('resize', resizeCheck);
     gsap.to(this, {
       pixi: {alpha: 0}, duration: 0.5,
-      onComplete: () => Manager.changeScene(new GameScene()),
+      onComplete: () => Manager.changeScene(new GameMenuScene()),
     });
   }
 
@@ -93,7 +92,7 @@ export class SuggestLandscapeModeScene extends Container implements IScene {
     const TR: number = Manager.textScale;
 
     this.suggestText1.position.set(WR * 50, HR * 37);
-    this.suggestText1.scale.set(TR * 0.8);
+    this.suggestText1.scale.set(TR * 1.6);
 
     this.suggestText2.position.set(WR * 50, HR * 50);
     this.suggestText2.scale.set(TR * 0.8);

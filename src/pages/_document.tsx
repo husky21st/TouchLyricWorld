@@ -13,6 +13,9 @@ class MyDocument extends Document {
           <meta charSet="UTF-8" />
           <link rel="shortcut icon" href="/flower.ico" />
           <meta name="theme-color" content="#039393" />
+          <meta httpEquiv="Pragma" content="no-cache" />
+          <meta httpEquiv="Cache-Control" content="no-store" />
+          <meta httpEquiv="Expires" content="0" />
           <link
             href="https://fonts.googleapis.com/css2?family=RocknRoll+One&display=swap"
             rel="stylesheet"
@@ -21,6 +24,7 @@ class MyDocument extends Document {
         <body>
           <Main />
           <NextScript />
+          <script></script> 
         </body>
       </Html>
     );
