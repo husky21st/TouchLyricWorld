@@ -731,7 +731,7 @@ export class MoveLyricText {
       })
       .to(phraseText, {
         pixi: {
-          y: '-=' + this.H * 0.06,
+          y: '-=' + this.H * 0.05,
           width: basedW * 0.5,
           height: basedH * 0.5,
           alpha: 0.2

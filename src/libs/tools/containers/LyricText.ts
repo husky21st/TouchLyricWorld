@@ -117,6 +117,7 @@ export class LyricText extends Container {
         charTextBG.cacheAsBitmap = false;
 
         const blurFilter1 = new filters.BlurFilter();
+        blurFilter1.blur = 4;
         charTextBG.filters = [blurFilter1];
   
         const textBG1: Graphics = new Graphics()
