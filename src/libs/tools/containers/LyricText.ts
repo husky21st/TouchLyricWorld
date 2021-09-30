@@ -1,5 +1,5 @@
 import { Container, Texture, Sprite, Graphics, BitmapText, BitmapFont, Point, ILineStyleOptions, LINE_JOIN, LINE_CAP, Circle, filters, InteractionEvent, utils } from 'pixi.js';
-import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer } from 'textalive-app-api';
+import { IBeat, IChar, IPhrase, IPlayer, IPlayerApp, IRenderingUnit, IVideo, IWord, Player, RenderingUnitFunction, Timer, ValenceArousalValue } from 'textalive-app-api';
 import { IScene, Manager } from 'libs/manages/Manager';
 import { ScoreText } from 'libs/scenes/GameScene';
 import { CharInfo, PhraseInfo } from 'libs/tools/others/types';
@@ -20,7 +20,7 @@ export class LyricText extends Container {
   public phraseTexts: Array<PhraseInfo>;
   //for mobile
   private baseWR: number = Manager.wr * 6;
-  constructor(video: IVideo, private _ScoreText :ScoreText, private allLyricText: string) {
+  constructor(video: IVideo, private _ScoreText :ScoreText, private allLyricText: string, private _player: Player, private maxVocalAmplitude: number) {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
@@ -75,7 +75,6 @@ export class LyricText extends Container {
       let placeIndex: number = getRandomInt(select.length);
       let place: number = select[placeIndex];
       if(i !== 0){
-        //0-0, 1-1, 2-2 or 3-3
         if(placeNumbers[i - 1] === place){
           placeIndex = getRandomInt(select.length);
           place = select[placeIndex];
@@ -84,13 +83,19 @@ export class LyricText extends Container {
       placeNumbers.push(place);
       p = p.next;
     }
-    //console.log('placeNmbers', placeNumbers);
 
 
+    console.log(this.maxVocalAmplitude);
     p = video.firstPhrase;
     for(let i = 0; p !== null; i++){
       let c: IChar = p.firstChar;
       for(let j = 0; j < p.charCount; j++){
+        //console.log(this._player.getVocalAmplitude(c.startTime), this._player.getValenceArousal(c.startTime));
+        const volumeLevel: number = 2.7 + (0.6 * this._player.getVocalAmplitude(c.startTime) / this.maxVocalAmplitude);
+        let colorSetR: number = this._player.getValenceArousal(c.startTime).a + 1;// 0 ~ 2
+        let colorSetB: number = this._player.getValenceArousal(c.startTime).v + 1;// 0 ~ 2
+        const bgColor: number = utils.rgb2hex([colorSetR * 40 / 256, 0.82, (colorSetB - 1.2) + 240 / 256]);
+
         const charTextBox: Container = new Container();
 
         charTextBox.sortableChildren = true;
@@ -102,9 +107,9 @@ export class LyricText extends Container {
         charText.zIndex = 100 * (i + 1) + j;
         charTextBox.addChild(charText);
 
-        const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0x00d2fc, fontSize: 64 });
+        const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: bgColor, fontSize: 64 });
         charTextBG.anchor.set(0.5, 0.75);
-        charTextBG.scale.set(TR * 2.7);
+        charTextBG.scale.set(TR * volumeLevel);
         charTextBG.zIndex = 100 * (i + 1) + j - 100000;
         charTextBG.alpha = 0;
         charTextBox.addChild(charTextBG);
@@ -197,16 +202,34 @@ export class LyricText extends Container {
         //charTextBox.position.set(WR * 50, HR * 50);
       }
 
+
+
       //set phraseText
-      const phraseText: BitmapText = new BitmapText(p.text, {fontName: 'BasicYuseiMagic', tint: 0x000000, fontSize: 64 });
+      const phraseTextBox: Container = new Container();
+      phraseTextBox.sortableChildren = true;
+      
+      const phraseText: BitmapText = new BitmapText(p.text, {fontName: 'BasicYuseiMagic', tint: 0xfa0fd3, fontSize: 68 });
       phraseText.anchor.set(0.5);
       phraseText.scale.set(TR);
       phraseText.zIndex = i;
-      phraseText.alpha = 0;
-      phraseText.visible = false;
-      this.addChild(phraseText);
+      phraseTextBox.addChild(phraseText);
+
+      const phraseTextBG: BitmapText = new BitmapText(p.text, {fontName: 'BasicYuseiMagic', tint: 0xffffff, fontSize: 68 });
+      phraseTextBG.anchor.set(0.495, 0.495);
+      phraseTextBG.scale.set(TR);
+      phraseTextBG.zIndex = i - 1000;
+      phraseTextBox.addChild(phraseTextBG);
+
+      const blurFilter2 = new filters.BlurFilter();
+      blurFilter2.blur = 2;
+      phraseTextBG.filters = [blurFilter2];
+
+      phraseTextBox.alpha = 0;
+      phraseTextBox.visible = false;
+      this.addChild(phraseTextBox);
+
       this.phraseTexts.push({
-        TextBox: phraseText,
+        TextBox: phraseTextBox,
         Duration: p.duration,
         NextDuration: p.next ? p.next.duration : 3000,
         PhrasePlace: placeNumbers[i],
@@ -227,6 +250,7 @@ export class LyricText extends Container {
     if(!charTextBox.Reached || charTextBox.Touched) return;
     const position: Point = event.data.getLocalPosition(event.currentTarget);
     if(getDistance(position.x, position.y) > this.baseWR) return;
+    charTextBox.TextBox.interactive = false;
     charTextBox.Touched = true;
     charTextBox.TextBox.children[0].alpha = 1;
     this._ScoreText.changeScore();

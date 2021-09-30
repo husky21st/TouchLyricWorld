@@ -10,7 +10,7 @@ export type CharInfo = {
 }
 
 export type PhraseInfo = {
-  TextBox: BitmapText;
+  TextBox: Container;
   Duration: number;
   NextDuration: number;
   PhrasePlace: number;

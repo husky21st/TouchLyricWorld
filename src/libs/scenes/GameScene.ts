@@ -21,6 +21,11 @@ const fixScore5Text = (score: number):string => {
   return ('00000' + newScore).slice(-5)
 }
 
+const getRandomArbitraryInt = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
+
 
 
 export class GameScene extends Container implements IScene {
@@ -53,9 +58,11 @@ export class GameScene extends Container implements IScene {
   private beatTouched: boolean;
   private beatOnce: boolean;
   private maxCombo: number;
+  private _tick: number = 0;
+  private tickInterval: number = 20;
   //Others
   private _MoveTextTypes: MoveTextTypes | null = null;
-  constructor(songURL: number = 5) {
+  constructor(songURL: number = 1) {
     super();
     /**
      * PIXI Init Setting
@@ -86,13 +93,14 @@ export class GameScene extends Container implements IScene {
     this._Result = new Result();
     this._Result.pivot.set(800, 400);
     this._Result.position.set(WR * 50, HR * 50);
-    this._Result.scale.set(HR * 0.08);
+    this._Result.scale.set(HR * 0.09);
     this._Result.zIndex = 9999;
     this._Result.alpha = 0;
     this._Result.visible = false;
     this.addChild(this._Result);
 
-    this._SomeSprite = new SomeSprite();
+    this._SomeSprite = new SomeSprite(songURL);
+    this._SomeSprite.zIndex = -9999;
     this.addChild(this._SomeSprite);
 
     this._TouchLine = new TouchLine();
@@ -297,14 +305,15 @@ export class GameScene extends Container implements IScene {
     this.changeStyle();
     setTimeout(() => {
       this.fontLoad(video);
-    }, 1000);
+    }, 200);
   }
 
   private _onTimerReady(timer: Timer): void {
     console.log('%c!TimerReady', 'color: aqua');
+    console.log(this._player.data);
     setTimeout(() => {
       this.showStartButton();
-    }, 2000);
+    }, 200);
   }
 
   private showStartButton(): void {
@@ -439,6 +448,18 @@ export class GameScene extends Container implements IScene {
     if(0.6 < beatNowProgress && beatNowProgress < 0.8){
       this.beatTouched = false;
     }
+
+    this._tick++;
+    if(this._tick % this.tickInterval === 0){
+      const isChorus: boolean = !!(this._player.findChorus(pos + 700));
+      this._SomeSprite.showRose(isChorus);
+      if(isChorus){
+        this.tickInterval = 5;
+      }else{
+        this.tickInterval = getRandomArbitraryInt(10, 20);
+      }
+      this._tick = 0;
+    }
   }
 
   private showChar(charNow: IChar): void {
@@ -538,7 +559,7 @@ export class GameScene extends Container implements IScene {
 
   private changeStyle(): void {
     const leftSize: number = Manager.wr * (100 - 19.2) / 2;
-    if (utils.isMobile.apple.device) {
+    if (Manager.isSafari) {
       Manager._media.style.left = `${leftSize}px`;
     }else {
       Manager._media.style.transform = `translate(-50%, 0%)`;
@@ -568,7 +589,7 @@ export class GameScene extends Container implements IScene {
   private fontLoadEnd(video: IVideo, allLyricText: string): void {
     if(!this._ScoreText) return;
     console.log('%c!fontLoaded', 'color: green');
-    this._LyricText = new LyricText(video, this._ScoreText, allLyricText);
+    this._LyricText = new LyricText(video, this._ScoreText, allLyricText, this._player, this._player.getMaxVocalAmplitude());
     this.addChild(this._LyricText);
     this.fontLoaded = true;
   }
@@ -580,6 +601,8 @@ export class GameScene extends Container implements IScene {
   private handleResultScreen(): void {
     if(!this._ScoreText || !this._BeatSprite) return;
     Manager._media.style.visibility = 'hidden'
+    this._Result.songTitle.text = this._player.data.song.name;
+    this._Result.songArtist.text = '- ' + this._player.data.song.artist.name;
     gsap.to([this._BeatSprite.iloveMiku, this._ScoreText, this.pauseButton], {
       pixi: {alpha: 0},
       duration: 1,
@@ -689,7 +712,7 @@ export class MoveLyricText {
 
   //for PhraseText
   public movePhraseText(phraseTextBox: PhraseInfo, beatDuration: number): void {
-    const phraseText: BitmapText = phraseTextBox.TextBox;
+    const phraseText: Container = phraseTextBox.TextBox;
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
     phraseText.position.set(this.W * 0.5, this.H * 0.39);
@@ -706,7 +729,7 @@ export class MoveLyricText {
       })
       .to(phraseText, {
         pixi: {
-          y: '-=' + this.H * 0.07,
+          y: '-=' + this.H * 0.06,
           scale: this.TR * 0.7,
           alpha: 0.2
         },
@@ -733,20 +756,161 @@ export class MoveLyricText {
  */
 class SomeSprite extends Container {
   private flower: Texture;
+  private roseTextures: Array<Texture>;
+  private roseOrange: Texture;
+  private roseSky: Texture;
+  private roseMelon: Texture;
+  private rosePink: Texture;
   private showStartCharFlower: Sprite;
-  constructor() {
+  private normalRainVecs: Array<number>;
+  private chorusRainVecs: Array<number>;
+  private normalRosesC: Container;
+  private chorusRosesC: Container;
+  private normalRosesArray: Array<Sprite>;
+  private chorusRosesArray: Array<Sprite>;
+  private normalRoseNow: number = 0;
+  private chorusRoseNow: number = 0;
+  private roseModeBuffer: boolean = false;
+  private baseW: number = Manager.wr;
+  private baseH: number = Manager.hr;
+  constructor(songURL : number) {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
+    let basicRose: number = 0;
+    if(songURL === 5){
+      basicRose = 0;
+    }else if(songURL === 3 || songURL === 4){
+      basicRose = 1;
+    }else if(songURL === 1){
+      basicRose = 2;
+    }else{
+      basicRose = 3;
+    }
+
+    this.normalRainVecs = new Array(50);
+    for (let i = 0; i < 50; i++) {
+      let radian: number = getRandomArbitraryInt(40, 140);
+      if(i !== 0){
+        if(Math.abs(this.normalRainVecs[i] - radian) < 10 ){
+          radian = getRandomArbitraryInt(20, 160);
+        }
+      }
+      this.normalRainVecs[i] = radian;
+    }
+
+    this.chorusRainVecs = new Array(50);
+    for (let i = 0; i < 50; i++) {
+      let radian: number = getRandomArbitraryInt(-70, 250);
+      if(i !== 0){
+        if(Math.abs(this.chorusRainVecs[i] - radian) < 10 ){
+          radian = getRandomArbitraryInt(-70, 250);
+        }
+      }
+      this.chorusRainVecs[i] = radian;
+    }
+
     this.flower = Texture.from('mainFlower');
+    this.roseTextures = new Array();
+    this.roseOrange = Texture.from('roseOrange');//0
+    this.roseTextures.push(this.roseOrange);
+    this.roseSky = Texture.from('roseSky');//1
+    this.roseTextures.push(this.roseSky);
+    this.roseMelon = Texture.from('roseMelon');//2
+    this.roseTextures.push(this.roseMelon);
+    this.rosePink = Texture.from('rosePink');//3
+    this.roseTextures.push(this.rosePink);
 
     this.showStartCharFlower = Sprite.from(this.flower);
     this.showStartCharFlower.anchor.set(0.5);
     this.showStartCharFlower.alpha = 0;
     this.showStartCharFlower.scale.set(WR * 0.06);
     this.addChild(this.showStartCharFlower);
+
+    this.normalRosesC = new Container();
+    this.normalRosesArray = new Array();
+
+    for (let i = 0; i < 50; i++) {
+      const rose = Sprite.from(this.roseTextures[basicRose]);
+      rose.anchor.set(0.5);
+      rose.alpha = 0.8;
+      rose.scale.set(WR * 0.015);
+      rose.position.set(-WR * 10, -HR * 10);
+      this.normalRosesC.addChild(rose);
+      this.normalRosesArray.push(rose);
+    }
+    this.addChild(this.normalRosesC);
+
+    this.chorusRosesC = new Container();
+    this.chorusRosesArray = new Array();
+
+    for (let i = 0; i < 50; i++) {
+      const rose = Sprite.from(this.roseTextures[i%4]);
+      rose.anchor.set(0.5);
+      rose.alpha = 1;
+      rose.scale.set(WR * 0.015);
+      rose.position.set(-WR * 10, -HR * 10);
+      this.chorusRosesC.addChild(rose);
+      this.chorusRosesArray.push(rose);
+    }
+    this.addChild(this.chorusRosesC);
+  }
+
+  public showRose(isChorus: boolean): void{
+    if(this.roseModeBuffer !== isChorus) this.changeRose(isChorus);
+    if(isChorus){
+      this.chorusRoseNow++;
+      if(this.chorusRoseNow >= 50)this.chorusRoseNow = 0;
+      const targetRose: Sprite = this.chorusRosesArray[this.chorusRoseNow];
+      const vec: number = Math.PI * this.chorusRainVecs[this.chorusRoseNow] / 180;
+      gsap.killTweensOf(targetRose);
+      targetRose.position.set(this.baseW * 50, this.baseH * 50);
+      gsap.to(targetRose, {
+        pixi: {
+          x: '+=' + this.baseW * 100 * Math.cos(vec),
+          y: '+=' + this.baseH * 100 * Math.sin(vec),
+          rotation: '-=' + 720,
+        },
+        duration: 4,
+        ease: 'none',
+      });
+    }else{
+      this.normalRoseNow++;
+      if(this.normalRoseNow >= 50)this.normalRoseNow = 0;
+      const targetRose: Sprite = this.normalRosesArray[this.normalRoseNow];
+      const vec: number = Math.PI * this.normalRainVecs[this.normalRoseNow] / 180;
+      gsap.killTweensOf(targetRose);
+      targetRose.position.set(this.baseW * 50, - this.baseH * 30);
+      gsap.to(targetRose, {
+        pixi: {
+          x: '+=' + this.baseW * 150 * Math.cos(vec),
+          y: '+=' + this.baseH * 150 * Math.sin(vec),
+          rotation: '-=' + 720,
+        },
+        duration: 10,
+        ease: 'none',
+      });
+    }
+  }
+
+  private changeRose(isChorus: boolean): void{
+    this.roseModeBuffer = isChorus;
+    let oldContainer: Container = this.chorusRosesC;
+    let newContainer: Container = this.normalRosesC;
+    if(isChorus){
+      oldContainer = this.normalRosesC;
+      newContainer = this.chorusRosesC;
+    }
+    gsap.to(oldContainer, {
+      pixi:{alpha: 0},
+      duration: 0.5,
+    });
+    gsap.to(newContainer, {
+      pixi: {alpha: 1},
+      duration: 0.5,
+    })
   }
 
   public showStartCharAnimation(point: POINT): void{
@@ -946,16 +1110,16 @@ class BeatSprite extends Container {
 
     const leftMiku: Sprite = Sprite.from('leftMiku');
     leftMiku.anchor.set(0.5);
-    leftMiku.scale.set(WR * 0.02);
-    leftMiku.position.set(WR * 50, HR * 60);
+    leftMiku.scale.set(WR * 0.018);
+    leftMiku.position.set(WR * 50, HR * 63);
     leftMiku.alpha = 0;
     this.iloveMiku.addChild(leftMiku);
     this.dancingMiku.push(leftMiku);
 
     const centerMiku: Sprite = Sprite.from('centerMiku');
     centerMiku.anchor.set(0.49, 0.49);
-    centerMiku.scale.set(WR * 0.02);
-    centerMiku.position.set(WR * 50, HR * 60);
+    centerMiku.scale.set(WR * 0.018);
+    centerMiku.position.set(WR * 50, HR * 63);
     centerMiku.alpha = 1;
     this.iloveMiku.addChild(centerMiku);
     this.dancingMiku.push(centerMiku);
@@ -963,8 +1127,8 @@ class BeatSprite extends Container {
 
     const rightMiku: Sprite = Sprite.from('rightMiku');
     rightMiku.anchor.set(0.5);
-    rightMiku.scale.set(WR * 0.02);
-    rightMiku.position.set(WR * 50, HR * 60);
+    rightMiku.scale.set(WR * 0.018);
+    rightMiku.position.set(WR * 50, HR * 63);
     rightMiku.alpha = 0;
     this.iloveMiku.addChild(rightMiku);
     this.dancingMiku.push(rightMiku);
@@ -992,14 +1156,14 @@ class BeatSprite extends Container {
     dancingMikuTL
       .to(this.dancingMiku[this.mikuTypeBuffer], {
         pixi: {
-          y: this.basedH * 58,
+          y: this.basedH * 51,
           alpha: 0,
         },
         duration: beatDuration / 8000,
       })
       .to(this.dancingMiku[beatPos], {
         pixi: {
-          y: this.basedH * 60,
+          y: this.basedH * 63,
           alpha: 1,
         },
         duration: beatDuration / 8000,

@@ -1,4 +1,4 @@
-import { Container, Sprite, Graphics, BitmapText, filters, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, DisplayObject, utils } from 'pixi.js';
+import { Container, Sprite, Graphics, BitmapText, Texture, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, DisplayObject, utils } from 'pixi.js';
 import { IScene, Manager } from 'libs/manages/Manager';
 import gsap from 'gsap';
 import { GameScene } from 'libs/scenes/GameScene';
@@ -15,16 +15,25 @@ const resizeCheck = (): void => {
   }, 300);
 }
 
+const getRandomArbitraryInt = (min: number, max: number): number => {
+  return Math.floor(Math.random() * (max - min) + min);
+}
+
 export class GameMenuScene extends Container implements IScene {
   private BG: Graphics;
+  private _BackGround: BackGround;
   private _Buttons: Buttons;
   private _CreditScreen: CreditScreen;
   private songSelectURL: number = 1;
+  private _tick: number = 0;
+  private tickInterval: number = 60;
   constructor() {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
+
+    this.sortableChildren = true;
 
     window.addEventListener('resize', resizeCheck);
 
@@ -44,6 +53,12 @@ export class GameMenuScene extends Container implements IScene {
     this.BG.interactive = true;
     this.BG.visible = false;
     this.addChild(this.BG);
+
+    this._BackGround = new BackGround();
+    this._BackGround.pivot.set(WR * 50, HR * 50);
+    this._BackGround.position.set(WR * 50, HR * 50);
+    this._BackGround.zIndex = -10000;
+    this.addChild(this._BackGround);
 
 
     this._CreditScreen = new CreditScreen();
@@ -96,7 +111,14 @@ export class GameMenuScene extends Container implements IScene {
     });
   }
 
-  public update(): void {}
+  public update(): void {
+    this._tick++;
+    if(this._tick % this.tickInterval === 0){
+      this._BackGround.rainRose();
+      this.tickInterval = getRandomArbitraryInt(30, 80);
+      this._tick = 0;
+    }
+  }
 
   public resize(): void {
     const WR: number = Manager.wr;
@@ -164,7 +186,7 @@ class CreditScreen extends Container {
     this.credit1.position.set(800, 260);
     this.addChild(this.credit1);
 
-    this.credit2 = new BitmapText("Cheering Miku Picture:ねこみん(@nukotun)   Title&Menu Graphic:つぼ(@tsubo_pi)", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 32 });
+    this.credit2 = new BitmapText("Cheering Miku Picture:ねこみん(@nukotun)   Menu&Result Graphic:つぼ(@tsubo_pi)", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 32 });
     this.credit2.anchor.set(0.5);
     this.credit2.position.set(800, 330);
     this.addChild(this.credit2);
@@ -288,5 +310,67 @@ class Buttons extends Container {
     this.song6Button.buttonMode = true;
     this.addChild(this.song6Button);
     this.songButtons.push(this.song6Button);
+  }
+}
+
+
+
+
+class BackGround extends Container {
+  private rainPlace: Array<number>;
+  private basicRose: Texture;
+  private roses: Array<Sprite>;
+  private roseNow: number = 0;
+  private baseW: number = Manager.wr;
+  private baseH: number = Manager.hr;
+  constructor() {
+    super();
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const TR: number = Manager.textScale;
+
+    const baseSpaceW: number = WR * 100 / 15;
+
+    this.rainPlace = new Array(30);
+    for (let i = 0; i < 30; i++) {
+      let pointW: number = getRandomArbitraryInt(baseSpaceW, baseSpaceW * 20);
+      if(i !== 0){
+        if(Math.abs(this.rainPlace[i] - pointW) < baseSpaceW ){
+          pointW = getRandomArbitraryInt(baseSpaceW, baseSpaceW * 20);
+        }
+      }
+      this.rainPlace[i] = pointW;
+    }
+
+    this.basicRose = Texture.from('rosePink');
+
+    this.roses = new Array();
+
+    for (let i = 0; i < 30; i++) {
+      const rose = Sprite.from(this.basicRose);
+      rose.anchor.set(0.5);
+      rose.alpha = 0.8;
+      rose.scale.set(WR * 0.015);
+      rose.position.set(-WR * 10, -HR * 10);
+      this.addChild(rose);
+      this.roses.push(rose);
+    }
+  }
+
+  public rainRose():void {
+    this.roseNow++;
+    if(this.roseNow >= 30)this.roseNow = 0;
+    const rainTarget: Sprite = this.roses[this.roseNow];
+    gsap.killTweensOf(rainTarget);
+    rainTarget.position.set(this.rainPlace[this.roseNow], - this.baseH * 20);
+    gsap.to(rainTarget, {
+      pixi: {
+        x: '-=' + this.baseW * 30,
+        y: '+=' + this.baseH * 140,
+        rotation: '-=' + 720,
+      },
+      duration: 10,
+      ease: 'none',
+    });
   }
 }

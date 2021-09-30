@@ -8,6 +8,8 @@ export class Result extends Container {
   private twitterLogo: Sprite;
   public scoreText: BitmapText;
   public scoreNumber: BitmapText;
+  public songTitle: BitmapText;
+  public songArtist: BitmapText;
   private backToMenu: BitmapText;
   private twitterTag: BitmapText;
   public full: BitmapText;
@@ -44,6 +46,16 @@ export class Result extends Container {
     this.scoreNumber.position.set(815, 470);
     this.scoreNumber.alpha = 0;
     this.addChild(this.scoreNumber);
+
+    this.songTitle = new BitmapText("First Note", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 42 });
+    this.songTitle.anchor.set(1, 0);
+    this.songTitle.position.set(1520, 70);
+    this.addChild(this.songTitle);
+
+    this.songArtist = new BitmapText("- blues", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 26 });
+    this.songArtist.anchor.set(1, 0);
+    this.songArtist.position.set(1520, 120);
+    this.addChild(this.songArtist);
 
     this.backToMenu = new BitmapText("> Back to Menu <", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 48 });
     this.backToMenu.anchor.set(0.5);

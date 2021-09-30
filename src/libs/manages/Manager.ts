@@ -13,6 +13,7 @@ export class Manager {
   private static _height: number;
 
   //for TextAliveApp
+  public static isSafari: boolean;
   public static _media: HTMLElement;
 
   //getter
@@ -79,7 +80,25 @@ export class Manager {
   //browser Check
   private static ManagerInitSetting(): void {
     PIXI.Loader.shared.destroy();
-    if (PIXI.utils.isMobile.apple.device) {
+    const _userAgent: string = window.navigator.userAgent.toLowerCase();
+    console.log(_userAgent);
+    this.isSafari = false;
+    if (_userAgent.indexOf('edge') != -1) {
+      console.log('use Edge');
+    } else if (_userAgent.indexOf('chrome') != -1) {
+      console.log('use Google Chrome');
+    } else if (_userAgent.indexOf('safari') != -1) {
+      console.log('use Safari');
+      this.isSafari = true;
+    } else if (_userAgent.indexOf('firefox') != -1) {
+      console.log('use FireFox');
+    } else if (_userAgent.indexOf('opera') != -1) {
+      console.log('use Opera');
+    } else {
+      console.log('undefined');
+      this.isSafari = true;
+    }
+    if (this.isSafari) {
       PIXI.settings.PREFER_ENV = PIXI.ENV.WEBGL;
     }
   }
