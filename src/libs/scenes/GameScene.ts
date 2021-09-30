@@ -100,7 +100,7 @@ export class GameScene extends Container implements IScene {
     this.addChild(this._Result);
 
     this._SomeSprite = new SomeSprite(songURL);
-    this._SomeSprite.zIndex = -9999;
+    this._SomeSprite.zIndex = -999;
     this.addChild(this._SomeSprite);
 
     this._TouchLine = new TouchLine();
@@ -456,7 +456,7 @@ export class GameScene extends Container implements IScene {
       if(isChorus){
         this.tickInterval = 5;
       }else{
-        this.tickInterval = getRandomArbitraryInt(10, 20);
+        this.tickInterval = getRandomArbitraryInt(13, 18);
       }
       this._tick = 0;
     }
@@ -589,7 +589,7 @@ export class GameScene extends Container implements IScene {
   private fontLoadEnd(video: IVideo, allLyricText: string): void {
     if(!this._ScoreText) return;
     console.log('%c!fontLoaded', 'color: green');
-    this._LyricText = new LyricText(video, this._ScoreText, allLyricText, this._player, this._player.getMaxVocalAmplitude());
+    this._LyricText = new LyricText(video, this._ScoreText, allLyricText, this._player, this._player.getMaxVocalAmplitude(), this._player.getMedianValenceArousal());
     this.addChild(this._LyricText);
     this.fontLoaded = true;
   }
@@ -769,8 +769,8 @@ class SomeSprite extends Container {
   private chorusRainVecs: Array<number>;
   private normalRosesC: Container;
   private chorusRosesC: Container;
-  private normalRosesArray: Array<Sprite>;
-  private chorusRosesArray: Array<Sprite>;
+  //private normalRosesArray: Array<Sprite>;
+  //private chorusRosesArray: Array<Sprite>;
   private normalRoseNow: number = 0;
   private chorusRoseNow: number = 0;
   private roseModeBuffer: boolean = false;
@@ -793,8 +793,8 @@ class SomeSprite extends Container {
       basicRose = 3;
     }
 
-    this.normalRainVecs = new Array(50);
-    for (let i = 0; i < 50; i++) {
+    this.normalRainVecs = new Array(25);
+    for (let i = 0; i < 25; i++) {
       let radian: number = getRandomArbitraryInt(40, 140);
       if(i !== 0){
         if(Math.abs(this.normalRainVecs[i] - radian) < 10 ){
@@ -804,8 +804,8 @@ class SomeSprite extends Container {
       this.normalRainVecs[i] = radian;
     }
 
-    this.chorusRainVecs = new Array(50);
-    for (let i = 0; i < 50; i++) {
+    this.chorusRainVecs = new Array(25);
+    for (let i = 0; i < 25; i++) {
       let radian: number = getRandomArbitraryInt(-70, 250);
       if(i !== 0){
         if(Math.abs(this.chorusRainVecs[i] - radian) < 10 ){
@@ -833,30 +833,30 @@ class SomeSprite extends Container {
     this.addChild(this.showStartCharFlower);
 
     this.normalRosesC = new Container();
-    this.normalRosesArray = new Array();
+    //this.normalRosesArray = new Array();
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 25; i++) {
       const rose = Sprite.from(this.roseTextures[basicRose]);
       rose.anchor.set(0.5);
       rose.alpha = 0.8;
       rose.scale.set(WR * 0.015);
       rose.position.set(-WR * 10, -HR * 10);
       this.normalRosesC.addChild(rose);
-      this.normalRosesArray.push(rose);
+      //this.normalRosesArray.push(rose);
     }
     this.addChild(this.normalRosesC);
 
     this.chorusRosesC = new Container();
-    this.chorusRosesArray = new Array();
+    //this.chorusRosesArray = new Array();
 
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 25; i++) {
       const rose = Sprite.from(this.roseTextures[i%4]);
       rose.anchor.set(0.5);
       rose.alpha = 1;
       rose.scale.set(WR * 0.015);
       rose.position.set(-WR * 10, -HR * 10);
       this.chorusRosesC.addChild(rose);
-      this.chorusRosesArray.push(rose);
+      //this.chorusRosesArray.push(rose);
     }
     this.addChild(this.chorusRosesC);
   }
@@ -865,8 +865,8 @@ class SomeSprite extends Container {
     if(this.roseModeBuffer !== isChorus) this.changeRose(isChorus);
     if(isChorus){
       this.chorusRoseNow++;
-      if(this.chorusRoseNow >= 50)this.chorusRoseNow = 0;
-      const targetRose: Sprite = this.chorusRosesArray[this.chorusRoseNow];
+      if(this.chorusRoseNow >= 25)this.chorusRoseNow = 0;
+      const targetRose: Sprite = this.chorusRosesC.children[this.chorusRoseNow] as Sprite;
       const vec: number = Math.PI * this.chorusRainVecs[this.chorusRoseNow] / 180;
       gsap.killTweensOf(targetRose);
       targetRose.position.set(this.baseW * 50, this.baseH * 50);
@@ -876,23 +876,23 @@ class SomeSprite extends Container {
           y: '+=' + this.baseH * 100 * Math.sin(vec),
           rotation: '-=' + 720,
         },
-        duration: 4,
+        duration: 3,
         ease: 'none',
       });
     }else{
       this.normalRoseNow++;
-      if(this.normalRoseNow >= 50)this.normalRoseNow = 0;
-      const targetRose: Sprite = this.normalRosesArray[this.normalRoseNow];
+      if(this.normalRoseNow >= 25)this.normalRoseNow = 0;
+      const targetRose: Sprite = this.normalRosesC.children[this.normalRoseNow] as Sprite;
       const vec: number = Math.PI * this.normalRainVecs[this.normalRoseNow] / 180;
       gsap.killTweensOf(targetRose);
-      targetRose.position.set(this.baseW * 50, - this.baseH * 30);
+      targetRose.position.set(this.baseW * 50, - this.baseH * 15);
       gsap.to(targetRose, {
         pixi: {
           x: '+=' + this.baseW * 150 * Math.cos(vec),
           y: '+=' + this.baseH * 150 * Math.sin(vec),
           rotation: '-=' + 720,
         },
-        duration: 10,
+        duration: 6,
         ease: 'none',
       });
     }

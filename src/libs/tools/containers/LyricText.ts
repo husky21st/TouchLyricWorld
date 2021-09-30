@@ -20,7 +20,7 @@ export class LyricText extends Container {
   public phraseTexts: Array<PhraseInfo>;
   //for mobile
   private baseWR: number = Manager.wr * 6;
-  constructor(video: IVideo, private _ScoreText :ScoreText, private allLyricText: string, private _player: Player, private maxVocalAmplitude: number) {
+  constructor(video: IVideo, private _ScoreText :ScoreText, private allLyricText: string, private _player: Player, private maxVocalAmplitude: number, private medianValenceArousal: ValenceArousalValue) {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
@@ -92,29 +92,28 @@ export class LyricText extends Container {
       for(let j = 0; j < p.charCount; j++){
         //console.log(this._player.getVocalAmplitude(c.startTime), this._player.getValenceArousal(c.startTime));
         const volumeLevel: number = 2.7 + (0.6 * this._player.getVocalAmplitude(c.startTime) / this.maxVocalAmplitude);
-        let colorSetR: number = this._player.getValenceArousal(c.startTime).a + 1;// 0 ~ 2
-        let colorSetB: number = this._player.getValenceArousal(c.startTime).v + 1;// 0 ~ 2
-        const bgColor: number = utils.rgb2hex([colorSetR * 40 / 256, 0.82, (colorSetB - 1.2) * 0.5 + 240 / 256]);
+        const valenceA: number = this._player.getValenceArousal(c.endTime).a - this.medianValenceArousal.a;
+        const valenceV: number = this._player.getValenceArousal(c.endTime).v - this.medianValenceArousal.v;
+        console.log(valenceA, valenceV);
+        const bgColor: number = utils.rgb2hex([valenceA * 0.9 + 0.1, valenceA * valenceV * 80 + 0.82, valenceV * 0.9 + 0.8]);
 
         const charTextBox: Container = new Container();
 
         charTextBox.sortableChildren = true;
   
         const charText: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: 0x000000, fontSize: 64 });
-        charText.anchor.set(0.5, 0.75);
+        charText.anchor.set(0.5, 0.65);
         charText.scale.set(TR * 2.6);
         //charText.zIndex = 10000 - i;
         charText.zIndex = 100 * (i + 1) + j;
         charTextBox.addChild(charText);
 
         const charTextBG: BitmapText = new BitmapText(c.text, {fontName: 'BasicYuseiMagic', tint: bgColor, fontSize: 64 });
-        charTextBG.anchor.set(0.5, 0.75);
+        charTextBG.anchor.set(0.5, 0.65);
         charTextBG.scale.set(TR * volumeLevel);
         charTextBG.zIndex = 100 * (i + 1) + j - 100000;
         charTextBG.alpha = 0;
         charTextBox.addChild(charTextBG);
-        charText.cacheAsBitmap = false;
-        charTextBG.cacheAsBitmap = false;
 
         const blurFilter1 = new filters.BlurFilter();
         blurFilter1.blur = 4;
