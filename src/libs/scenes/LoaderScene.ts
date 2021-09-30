@@ -177,7 +177,7 @@ class LoadingFlower extends Container {
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
 
-    this.flower = Texture.from('LoadingMiku.png');
+    this.flower = Texture.from('DancingMiku/loadResultMiku.png');
 
     this.flowerSprite = Sprite.from(this.flower);
     this.addChild(this.flowerSprite);

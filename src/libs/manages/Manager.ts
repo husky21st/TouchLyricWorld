@@ -60,8 +60,7 @@ export class Manager {
 
     //other setting
     PIXI.TextMetrics.BASELINE_SYMBOL += 'あぽ｜';
-
-
+    PIXI.settings.RESOLUTION = window.devicePixelRatio || 1;
 
     // Add the ticker
     Manager.app.ticker.stop();

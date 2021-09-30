@@ -20,9 +20,9 @@ export class Result extends Container {
     this.frame = Sprite.from('frame');
     this.addChild(this.frame);
 
-    this.mikuBG = Sprite.from('leftMiku');
-    this.mikuBG.scale.set(0.2);
-    this.mikuBG.position.set(50, 390);
+    this.mikuBG = Sprite.from('DancingMiku/loadResultMiku.png');
+    this.mikuBG.scale.set(1);
+    this.mikuBG.position.set(50, 360);
     this.addChild(this.mikuBG);
 
     this.resultText = Sprite.from('resultText');
