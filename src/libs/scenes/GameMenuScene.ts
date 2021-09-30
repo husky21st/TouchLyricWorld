@@ -157,6 +157,8 @@ export class GameMenuScene extends Container implements IScene {
 
     this._Buttons.song6Button.position.set(WR * 80, HR * 71);
     this._Buttons.song6Button.scale.set(BasedScale);
+
+    this._BackGround.position.set(WR * 50, HR * 50);
   }
 }
 

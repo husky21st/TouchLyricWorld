@@ -305,7 +305,7 @@ export class GameScene extends Container implements IScene {
     this.changeStyle();
     setTimeout(() => {
       this.fontLoad(video);
-    }, 200);
+    }, 300);
   }
 
   private _onTimerReady(timer: Timer): void {
@@ -313,7 +313,7 @@ export class GameScene extends Container implements IScene {
     console.log(this._player.data);
     setTimeout(() => {
       this.showStartButton();
-    }, 200);
+    }, 300);
   }
 
   private showStartButton(): void {
@@ -357,7 +357,7 @@ export class GameScene extends Container implements IScene {
     console.log('REQUESTPLAY');
     //this._player.requestStageUpdate();
     if(this.isFirst){
-      this._player.requestMediaSeek(0);
+      //this._player.requestMediaSeek(0);
       this.charBuffer = null;
       this.phraseBuffer = null;
       this.beatBuffer = null;
