@@ -11,7 +11,7 @@ class MyDocument extends Document {
       <Html lang="ja">
         <Head>
           <meta charSet="UTF-8" />
-          <link rel="shortcut icon" href="/flower.ico" />
+          <link rel="icon" href="/flower.ico" />
           <meta name="theme-color" content="#039393" />
           <meta httpEquiv="Pragma" content="no-cache" />
           <meta httpEquiv="Cache-Control" content="no-store" />
