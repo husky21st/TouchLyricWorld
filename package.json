@@ -1,7 +1,14 @@
 {
-  "name": "touch_lyric_world",
-  "version": "0.1.0",
+  "name": "touch-lyric-world",
+  "version": "1.0.0",
+  "description": "TextAlive App APIとPixiJSを用いたブラウザで遊べるリズムゲーム",
   "private": true,
+  "repository": "git@github.com:husky21st/TouchLyricWorld.git",
+  "keywords": [
+    "textalive",
+    "PixiJS"
+  ],
+  "license": "MIT",
   "scripts": {
     "dev": "next dev --hostname 0.0.0.0",
     "build": "rm -rf ./build && NODE_ENV=production next build",
@@ -10,7 +17,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "gsap": "^3.7.1",
+    "gsap": "^3.8.0",
     "memory-cache": "^0.2.0",
     "next": "11.1.2",
     "pixi-webfont-loader": "^1.0.2",

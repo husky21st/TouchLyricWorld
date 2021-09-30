@@ -13,7 +13,7 @@ const MyCanvas: VFC = () => {
       const nowTarget = event.target as Element & HTMLButtonElement;
       nowTarget.style.display = 'none';
     }, 100);
-  }
+  };
   useEffect(() => {
     const canvas: HTMLCanvasElement | null = canvasRef.current;
     const media: HTMLDivElement | null = mediaRef.current;
@@ -28,8 +28,10 @@ const MyCanvas: VFC = () => {
   return (
     <>
       <canvas ref={canvasRef} />
-      <button type='button' id='dummyButton' onClick={handleDummyButton}>Please<br />Touch Display<br /><br /><br /><br /></button>
-      <div ref={mediaRef} id='media' />
+      <button type="button" id="dummyButton" onClick={handleDummyButton}>
+        Please<br />Touch Display<br /><br /><br /><br />
+      </button>
+      <div ref={mediaRef} id="media" />
     </>
   );
 };

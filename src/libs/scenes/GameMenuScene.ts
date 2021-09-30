@@ -1,6 +1,6 @@
-import { Container, Sprite, Graphics, BitmapText, Texture, Loader, ILineStyleOptions, LINE_JOIN, LINE_CAP, DisplayObject, utils } from 'pixi.js';
-import { IScene, Manager } from 'libs/manages/Manager';
+import { Container, Sprite, Graphics, BitmapText, Texture } from 'pixi.js';
 import gsap from 'gsap';
+import { IScene, Manager } from 'libs/manages/Manager';
 import { GameScene } from 'libs/scenes/GameScene';
 
 let resizeTimer: number = 0;
@@ -13,11 +13,11 @@ const resizeCheck = (): void => {
     const screenHeight = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
     Manager._onResize(screenWidth, screenHeight);
   }, 300);
-}
+};
 
 const getRandomArbitraryInt = (min: number, max: number): number => {
   return Math.floor(Math.random() * (max - min) + min);
-}
+};
 
 export class GameMenuScene extends Container implements IScene {
   private BG: Graphics;
@@ -32,7 +32,6 @@ export class GameMenuScene extends Container implements IScene {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
-    const TR: number = Manager.textScale;
 
     this.sortableChildren = true;
 
@@ -45,10 +44,7 @@ export class GameMenuScene extends Container implements IScene {
     const maxH: number = Math.max(screen.availHeight, document.documentElement.clientHeight);
     const maxWH: number = Math.max(maxW, maxH) + 200;
 
-    this.BG = new Graphics()
-      .beginFill(0x000000, 0.3)
-      .drawRect(0, 0, maxWH, maxWH)
-      .endFill();
+    this.BG = new Graphics().beginFill(0x000000, 0.3).drawRect(0, 0, maxWH, maxWH).endFill();
     this.BG.pivot.set(maxWH / 2, maxWH / 2);
     this.BG.position.set(WR * 50, HR * 50);
     this.BG.interactive = true;
@@ -61,7 +57,6 @@ export class GameMenuScene extends Container implements IScene {
     this._BackGround.zIndex = -10000;
     this.addChild(this._BackGround);
 
-
     this._CreditScreen = new CreditScreen();
     this._CreditScreen.pivot.set(800, 400);
     this._CreditScreen.position.set(WR * 50, HR * 50);
@@ -71,23 +66,22 @@ export class GameMenuScene extends Container implements IScene {
     this._CreditScreen.interactive = true;
     this.addChild(this._CreditScreen);
 
-    this._Buttons.song1Button.on('pointertap',() => this.selectSong(1), this);
-    this._Buttons.song2Button.on('pointertap',() => this.selectSong(2), this);
-    this._Buttons.song3Button.on('pointertap',() => this.selectSong(3), this);
-    this._Buttons.song4Button.on('pointertap',() => this.selectSong(4), this);
-    this._Buttons.song5Button.on('pointertap',() => this.selectSong(5), this);
-    this._Buttons.song6Button.on('pointertap',() => this.selectSong(6), this);
+    this._Buttons.song1Button.on('pointertap', () => this.selectSong(1), this);
+    this._Buttons.song2Button.on('pointertap', () => this.selectSong(2), this);
+    this._Buttons.song3Button.on('pointertap', () => this.selectSong(3), this);
+    this._Buttons.song4Button.on('pointertap', () => this.selectSong(4), this);
+    this._Buttons.song5Button.on('pointertap', () => this.selectSong(5), this);
+    this._Buttons.song6Button.on('pointertap', () => this.selectSong(6), this);
 
-    this._Buttons.playButton.on('pointertap',this.handlePlayButton, this);
-    this._Buttons.creditButton.on('pointertap',this.showCredit, this);
-    this.BG.on('pointertap',this.hideCredit, this);
+    this._Buttons.playButton.on('pointertap', this.handlePlayButton, this);
+    this._Buttons.creditButton.on('pointertap', this.showCredit, this);
+    this.BG.on('pointertap', this.hideCredit, this);
 
     this.loadGameMenu();
   }
 
   private loadGameMenu(): void {
     const WR: number = Manager.wr;
-    const HR: number = Manager.hr;
     const gameMenuTL: gsap.core.Timeline = gsap.timeline();
     gameMenuTL
       .to(this._Buttons.song1Button, {
@@ -136,7 +130,9 @@ export class GameMenuScene extends Container implements IScene {
         duration: 2,
         delay: -1.8,
         ease: 'elastic.out(1, 0.4)',
-        onComplete: () => {this.loadEnd = true;}
+        onComplete: () => {
+          this.loadEnd = true;
+        },
       });
   }
 
@@ -163,18 +159,19 @@ export class GameMenuScene extends Container implements IScene {
     this._CreditScreen.alpha = 0;
   }
 
-  private handlePlayButton(): void{
+  private handlePlayButton(): void {
     this._Buttons.playButton.interactive = false;
     window.removeEventListener('resize', resizeCheck);
     gsap.to(this, {
-      pixi: {alpha: 0}, duration: 0.5,
+      pixi: { alpha: 0 },
+      duration: 0.5,
       onComplete: () => Manager.changeScene(new GameScene(this.songSelectURL)),
     });
   }
 
   public update(): void {
     this._tick++;
-    if(this._tick % this.tickInterval === 0){
+    if (this._tick % this.tickInterval === 0) {
       this._BackGround.rainRose();
       this.tickInterval = getRandomArbitraryInt(30, 80);
       this._tick = 0;
@@ -182,10 +179,9 @@ export class GameMenuScene extends Container implements IScene {
   }
 
   public resize(): void {
-    if(!this.loadEnd)return;
+    if (!this.loadEnd) return;
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
-    const TR: number = Manager.textScale;
     const BasedScale: number = WR / 25;
 
     this.BG.position.set(WR * 50, HR * 50);
@@ -225,8 +221,7 @@ export class GameMenuScene extends Container implements IScene {
   }
 }
 
-
-//based 1500/700 screen
+//based 1600/800 screen
 class CreditScreen extends Container {
   private frame: Sprite;
   private creditTitle: BitmapText;
@@ -241,39 +236,56 @@ class CreditScreen extends Container {
     this.frame = Sprite.from('frame');
     this.addChild(this.frame);
 
-    this.creditTitle = new BitmapText("Credit", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 112 });
+    this.creditTitle = new BitmapText('Credit', {
+      fontName: 'BasicRocknRoll',
+      tint: 0x000000,
+      fontSize: 112,
+    });
     this.creditTitle.anchor.set(0.5);
     this.creditTitle.position.set(800, 130);
     this.addChild(this.creditTitle);
 
-    this.credit1 = new BitmapText("Plan&Program:huskyB4ll", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 48 });
+    this.credit1 = new BitmapText('Plan&Program:huskyB4ll', {
+      fontName: 'BasicRocknRoll',
+      tint: 0x000000,
+      fontSize: 48,
+    });
     this.credit1.anchor.set(0.5);
     this.credit1.position.set(800, 260);
     this.addChild(this.credit1);
 
-    this.credit2 = new BitmapText("Cheering Miku Picture:ねこみん(@nukotun)   Menu&Result Graphic:つぼ(@tsubo_pi)", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 32 });
+    this.credit2 = new BitmapText(
+      'Cheering Miku Picture:ねこみん(@nukotun)   Menu&Result Graphic:つぼ(@tsubo_pi)',
+      { fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 32 },
+    );
     this.credit2.anchor.set(0.5);
     this.credit2.position.set(800, 330);
     this.addChild(this.credit2);
 
-    this.specialTitle = new BitmapText("Special Thanks", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 112 });
+    this.specialTitle = new BitmapText('Special Thanks', {
+      fontName: 'BasicRocknRoll',
+      tint: 0x000000,
+      fontSize: 112,
+    });
     this.specialTitle.anchor.set(0.5);
     this.specialTitle.position.set(800, 456);
     this.addChild(this.specialTitle);
 
-    this.SP1 = new BitmapText("All Vocaloid fans", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 48 });
+    this.SP1 = new BitmapText('All Vocaloid fans', {
+      fontName: 'BasicRocknRoll',
+      tint: 0x000000,
+      fontSize: 48,
+    });
     this.SP1.anchor.set(0.5);
     this.SP1.position.set(800, 590);
     this.addChild(this.SP1);
 
-    this.SP2 = new BitmapText("You", {fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 48 });
+    this.SP2 = new BitmapText('You', { fontName: 'BasicRocknRoll', tint: 0x000000, fontSize: 48 });
     this.SP2.anchor.set(0.5);
     this.SP2.position.set(800, 655);
     this.addChild(this.SP2);
   }
 }
-
-
 
 class Buttons extends Container {
   public title: Sprite;
@@ -378,9 +390,6 @@ class Buttons extends Container {
   }
 }
 
-
-
-
 class BackGround extends Container {
   private rainPlace: Array<number>;
   private basicRose: Texture;
@@ -392,15 +401,14 @@ class BackGround extends Container {
     super();
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
-    const TR: number = Manager.textScale;
 
-    const baseSpaceW: number = WR * 100 / 15;
+    const baseSpaceW: number = (WR * 100) / 15;
 
     this.rainPlace = new Array(30);
     for (let i = 0; i < 30; i++) {
       let pointW: number = getRandomArbitraryInt(baseSpaceW, baseSpaceW * 20);
-      if(i !== 0){
-        if(Math.abs(this.rainPlace[i] - pointW) < baseSpaceW ){
+      if (i !== 0) {
+        if (Math.abs(this.rainPlace[i] - pointW) < baseSpaceW) {
           pointW = getRandomArbitraryInt(baseSpaceW, baseSpaceW * 20);
         }
       }
@@ -422,12 +430,12 @@ class BackGround extends Container {
     }
   }
 
-  public rainRose():void {
+  public rainRose(): void {
     this.roseNow++;
-    if(this.roseNow >= 30)this.roseNow = 0;
+    if (this.roseNow >= 30) this.roseNow = 0;
     const rainTarget: Sprite = this.roses[this.roseNow];
     gsap.killTweensOf(rainTarget);
-    rainTarget.position.set(this.rainPlace[this.roseNow], - this.baseH * 20);
+    rainTarget.position.set(this.rainPlace[this.roseNow], -this.baseH * 20);
     gsap.to(rainTarget, {
       pixi: {
         x: '-=' + this.baseW * 30,

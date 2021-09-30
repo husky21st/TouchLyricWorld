@@ -1,7 +1,7 @@
 import * as PIXI from 'pixi.js';
 import { gsap } from 'gsap';
 import { PixiPlugin } from 'gsap/PixiPlugin';
-import { WebfontLoaderPlugin } from "pixi-webfont-loader";
+import { WebfontLoaderPlugin } from 'pixi-webfont-loader';
 
 export class Manager {
   private constructor() {}
@@ -33,8 +33,12 @@ export class Manager {
     return Manager._width / 2000;
   }
 
-  public static initialize(canvas: HTMLCanvasElement, mediaElement: HTMLDivElement, width: number, height: number): void {
-    console.log('Manager_init');
+  public static initialize(
+    canvas: HTMLCanvasElement,
+    mediaElement: HTMLDivElement,
+    width: number,
+    height: number,
+  ): void {
     // store our width and height
     Manager._width = width;
     Manager._height = height;
@@ -50,11 +54,10 @@ export class Manager {
       height: height,
     });
 
-    console.log(PIXI.utils.isMobile);
     //plugin entry for gsap
     gsap.registerPlugin(PixiPlugin);
     PixiPlugin.registerPIXI(PIXI);
-    
+
     //pixi-webfont-loader
     PIXI.Loader.registerPlugin(WebfontLoaderPlugin);
 
@@ -68,10 +71,10 @@ export class Manager {
       Manager.app.ticker.update();
     });
     Manager.app.ticker.add(Manager.update);
-    
+
     Manager._media = mediaElement as HTMLElement;
     Manager._media.style.visibility = 'hidden';
-    
+
     Manager.ManagerInitSetting();
   }
 
@@ -79,21 +82,14 @@ export class Manager {
   private static ManagerInitSetting(): void {
     PIXI.Loader.shared.destroy();
     const _userAgent: string = window.navigator.userAgent.toLowerCase();
-    console.log(_userAgent);
     this.isSafari = false;
     if (_userAgent.indexOf('edge') != -1) {
-      console.log('use Edge');
     } else if (_userAgent.indexOf('chrome') != -1) {
-      console.log('use Google Chrome');
     } else if (_userAgent.indexOf('safari') != -1) {
-      console.log('use Safari');
       this.isSafari = true;
     } else if (_userAgent.indexOf('firefox') != -1) {
-      console.log('use FireFox');
     } else if (_userAgent.indexOf('opera') != -1) {
-      console.log('use Opera');
     } else {
-      console.log('undefined');
       this.isSafari = true;
     }
     if (this.isSafari) {
@@ -107,7 +103,7 @@ export class Manager {
     Manager._height = HEIGHT;
 
     Manager.app.renderer.resize(Manager.width, Manager.height);
-    if(Manager.currentScene){
+    if (Manager.currentScene) {
       Manager.currentScene.resize();
     }
     Manager.app.render();
@@ -117,56 +113,8 @@ export class Manager {
     }, 200);
   }
 
-  //public static resizeToFullscreen(): void {
-  //  // current screen size
-  //  console.log(
-  //    'width',
-  //    window.innerWidth,
-  //    screen.width,
-  //    screen.availWidth,
-  //    document.documentElement.clientWidth,
-  //  );
-  //  console.log(
-  //    'height',
-  //    window.innerHeight,
-  //    screen.height,
-  //    screen.availHeight,
-  //    document.documentElement.clientHeight,
-  //  );
-  //  Manager._scaleRatioX = screen.availWidth / Manager.width;
-  //  Manager._scaleRatioY = screen.availHeight / Manager.height;
-  //  if (Manager.scaleRatioX === 1 && Manager.scaleRatioY === 1) return;
-  //  Manager.currentScene.pivot.set(Manager.width / 2, Manager.height / 2);
-  //  Manager._width = screen.availWidth;
-  //  Manager._height = screen.availHeight;
-
-  //  Manager.app.renderer.resize(Manager.width, Manager.height);
-  //  Manager.currentScene.scale.set(Manager.scaleRatioX);
-  //  Manager.currentScene.position.set(Manager.width / 2, Manager.height / 2);
-  //  //Manager.currentScene.transform.position.set(Manager.scaleRatioX, Manager.scaleRatioY);
-  //  Manager.app.render();
-
-  //  //// uniform scale for our game
-  //  //const scale = Math.min(screenWidth / Manager.width, screenHeight / Manager.height);
-
-  //  //// the "uniformly englarged" size for our game
-  //  //const enlargedWidth = Math.floor(scale * Manager.width);
-  //  //const enlargedHeight = Math.floor(scale * Manager.height);
-
-  //  //// margins for centering our game
-  //  //const horizontalMargin = (screenWidth - enlargedWidth) / 2;
-  //  //const verticalMargin = (screenHeight - enlargedHeight) / 2;
-
-  //  //// now we use css trickery to set the sizes and margins
-  //  //Manager.app.view.style.width = `${enlargedWidth}px`;
-  //  //Manager.app.view.style.height = `${enlargedHeight}px`;
-  //  //Manager.app.view.style.marginLeft = Manager.app.view.style.marginRight = `${horizontalMargin}px`;
-  //  //Manager.app.view.style.marginTop = Manager.app.view.style.marginBottom = `${verticalMargin}px`;
-  //}
-
   public static changeScene(newScene: IScene): void {
     if (Manager.currentScene) {
-      console.log('Manager_destroy');
       Manager.app.stage.removeChild(Manager.currentScene);
       Manager.currentScene.destroy();
     }

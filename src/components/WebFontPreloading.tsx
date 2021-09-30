@@ -10,16 +10,18 @@ const WebFontPreloading: VFC = () => {
   }, [active]);
   return (
     <>
-      {active &&
-        <div id='webfontPreloading'>
+      {active && (
+        <div id="webfontPreloading">
           <noscript>
             <h1>JavaScriptを有効にしてね！</h1>
             <br />
             <p>※推奨ブラウザはiPhoneの方はSafari, それ以外の方はChromeです</p>
           </noscript>
-          <p ref={paragraphRef} aria-hidden="true">Loading...</p>
+          <p ref={paragraphRef} aria-hidden="true">
+            Loading...
+          </p>
         </div>
-      }
+      )}
     </>
   );
 };
