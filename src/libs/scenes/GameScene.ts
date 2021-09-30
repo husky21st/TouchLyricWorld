@@ -715,6 +715,8 @@ export class MoveLyricText {
     const phraseText: Container = phraseTextBox.TextBox;
     const Duration: number = phraseTextBox.Duration;
     const NextDuration: number = phraseTextBox.NextDuration;
+    const basedW: number = phraseTextBox.TextBox.width;
+    const basedH: number = phraseTextBox.TextBox.height;
     phraseText.position.set(this.W * 0.5, this.H * 0.39);
     const phraseTextTL: gsap.core.Timeline = gsap.timeline();
     phraseText.visible = true;
@@ -730,7 +732,8 @@ export class MoveLyricText {
       .to(phraseText, {
         pixi: {
           y: '-=' + this.H * 0.06,
-          scale: this.TR * 0.7,
+          width: basedW * 0.5,
+          height: basedH * 0.5,
           alpha: 0.2
         },
         duration: beatDuration / 1000,

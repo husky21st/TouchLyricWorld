@@ -94,7 +94,7 @@ export class LyricText extends Container {
         const volumeLevel: number = 2.7 + (0.6 * this._player.getVocalAmplitude(c.startTime) / this.maxVocalAmplitude);
         let colorSetR: number = this._player.getValenceArousal(c.startTime).a + 1;// 0 ~ 2
         let colorSetB: number = this._player.getValenceArousal(c.startTime).v + 1;// 0 ~ 2
-        const bgColor: number = utils.rgb2hex([colorSetR * 40 / 256, 0.82, (colorSetB - 1.2) + 240 / 256]);
+        const bgColor: number = utils.rgb2hex([colorSetR * 40 / 256, 0.82, (colorSetB - 1.2) * 0.5 + 240 / 256]);
 
         const charTextBox: Container = new Container();
 
