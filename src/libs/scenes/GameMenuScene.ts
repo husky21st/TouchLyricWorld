@@ -27,6 +27,7 @@ export class GameMenuScene extends Container implements IScene {
   private songSelectURL: number = 1;
   private _tick: number = 0;
   private tickInterval: number = 60;
+  private loadEnd: boolean = false;
   constructor() {
     super();
     const WR: number = Manager.wr;
@@ -42,7 +43,7 @@ export class GameMenuScene extends Container implements IScene {
 
     const maxW: number = Math.max(screen.availWidth, document.documentElement.clientWidth);
     const maxH: number = Math.max(screen.availHeight, document.documentElement.clientHeight);
-    const maxWH: number = Math.max(maxW, maxH);
+    const maxWH: number = Math.max(maxW, maxH) + 200;
 
     this.BG = new Graphics()
       .beginFill(0x000000, 0.3)
@@ -80,14 +81,74 @@ export class GameMenuScene extends Container implements IScene {
     this._Buttons.playButton.on('pointertap',this.handlePlayButton, this);
     this._Buttons.creditButton.on('pointertap',this.showCredit, this);
     this.BG.on('pointertap',this.hideCredit, this);
+
+    this.loadGameMenu();
+  }
+
+  private loadGameMenu(): void {
+    const WR: number = Manager.wr;
+    const HR: number = Manager.hr;
+    const gameMenuTL: gsap.core.Timeline = gsap.timeline();
+    gameMenuTL
+      .to(this._Buttons.song1Button, {
+        pixi: {
+          x: WR * 77,
+        },
+        duration: 2,
+        ease: 'elastic.out(1, 0.4)',
+      })
+      .to(this._Buttons.song2Button, {
+        pixi: {
+          x: WR * 80,
+        },
+        duration: 2,
+        delay: -1.8,
+        ease: 'elastic.out(1, 0.4)',
+      })
+      .to(this._Buttons.song3Button, {
+        pixi: {
+          x: WR * 80,
+        },
+        duration: 2,
+        delay: -1.8,
+        ease: 'elastic.out(1, 0.4)',
+      })
+      .to(this._Buttons.song4Button, {
+        pixi: {
+          x: WR * 80,
+        },
+        duration: 2,
+        delay: -1.8,
+        ease: 'elastic.out(1, 0.4)',
+      })
+      .to(this._Buttons.song5Button, {
+        pixi: {
+          x: WR * 80,
+        },
+        duration: 2,
+        delay: -1.8,
+        ease: 'elastic.out(1, 0.4)',
+      })
+      .to(this._Buttons.song6Button, {
+        pixi: {
+          x: WR * 80,
+        },
+        duration: 2,
+        delay: -1.8,
+        ease: 'elastic.out(1, 0.4)',
+        onComplete: () => {this.loadEnd = true;}
+      });
   }
 
   private selectSong(songURL: number): void {
+    const WR: number = Manager.wr;
     this.songSelectURL = songURL;
     for (let i = 0; i < 6; i++) {
       this._Buttons.songButtons[i].alpha = 0.5;
+      this._Buttons.songButtons[i].x = WR * 80;
     }
     this._Buttons.songButtons[songURL - 1].alpha = 1;
+    this._Buttons.songButtons[songURL - 1].x = WR * 77;
   }
 
   private showCredit(): void {
@@ -121,6 +182,7 @@ export class GameMenuScene extends Container implements IScene {
   }
 
   public resize(): void {
+    if(!this.loadEnd)return;
     const WR: number = Manager.wr;
     const HR: number = Manager.hr;
     const TR: number = Manager.textScale;
@@ -159,6 +221,7 @@ export class GameMenuScene extends Container implements IScene {
     this._Buttons.song6Button.scale.set(BasedScale);
 
     this._BackGround.position.set(WR * 50, HR * 50);
+    this.selectSong(this.songSelectURL);
   }
 }
 
@@ -255,7 +318,7 @@ class Buttons extends Container {
 
     this.song1Button = Sprite.from('songTitle1');
     this.song1Button.anchor.set(0.5);
-    this.song1Button.position.set(WR * 80, HR * 11);
+    this.song1Button.position.set(WR * 130, HR * 11);
     this.song1Button.scale.set(BasedScale);
     this.song1Button.alpha = 1;
     this.song1Button.interactive = true;
@@ -265,7 +328,7 @@ class Buttons extends Container {
 
     this.song2Button = Sprite.from('songTitle2');
     this.song2Button.anchor.set(0.5);
-    this.song2Button.position.set(WR * 80, HR * 23);
+    this.song2Button.position.set(WR * 130, HR * 23);
     this.song2Button.scale.set(BasedScale);
     this.song2Button.alpha = 0.5;
     this.song2Button.interactive = true;
@@ -275,7 +338,7 @@ class Buttons extends Container {
 
     this.song3Button = Sprite.from('songTitle3');
     this.song3Button.anchor.set(0.5);
-    this.song3Button.position.set(WR * 80, HR * 35);
+    this.song3Button.position.set(WR * 130, HR * 35);
     this.song3Button.scale.set(BasedScale);
     this.song3Button.alpha = 0.5;
     this.song3Button.interactive = true;
@@ -285,7 +348,7 @@ class Buttons extends Container {
 
     this.song4Button = Sprite.from('songTitle4');
     this.song4Button.anchor.set(0.5);
-    this.song4Button.position.set(WR * 80, HR * 47);
+    this.song4Button.position.set(WR * 130, HR * 47);
     this.song4Button.scale.set(BasedScale);
     this.song4Button.alpha = 0.5;
     this.song4Button.interactive = true;
@@ -295,7 +358,7 @@ class Buttons extends Container {
 
     this.song5Button = Sprite.from('songTitle5');
     this.song5Button.anchor.set(0.5);
-    this.song5Button.position.set(WR * 80, HR * 59);
+    this.song5Button.position.set(WR * 130, HR * 59);
     this.song5Button.scale.set(BasedScale);
     this.song5Button.alpha = 0.5;
     this.song5Button.interactive = true;
@@ -305,7 +368,7 @@ class Buttons extends Container {
 
     this.song6Button = Sprite.from('songTitle6');
     this.song6Button.anchor.set(0.5);
-    this.song6Button.position.set(WR * 80, HR * 71);
+    this.song6Button.position.set(WR * 130, HR * 71);
     this.song6Button.scale.set(BasedScale);
     this.song6Button.alpha = 0.5;
     this.song6Button.interactive = true;
