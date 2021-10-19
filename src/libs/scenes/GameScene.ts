@@ -222,6 +222,7 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121525/history
             beatId: 3996956,
+            chordId: 2130399,
             repetitiveSegmentId: 2099561,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FFDb1%2F20210213190029
             lyricId: 52065,
@@ -234,6 +235,7 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121405/history
             beatId: 3953908,
+            chordId: 2130374,
             repetitiveSegmentId: 2099661,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FYW_d%2F20210206123357
             lyricId: 52061,
@@ -246,6 +248,7 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121404/history
             beatId: 3953902,
+            chordId: 2130383,
             repetitiveSegmentId: 2099660,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/www.youtube.com%2Fwatch%3Fv=bMtYf3R0zhY
             lyricId: 52093,
@@ -258,6 +261,7 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121406/history
             beatId: 3953764,
+            chordId: 2130372,
             repetitiveSegmentId: 2099662,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FR6EN%2F20210222075543
             lyricId: 52062,
@@ -270,8 +274,8 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121407/history
             beatId: 3953917,
+            chordId: 2130385,
             repetitiveSegmentId: 2099665,
-
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/www.youtube.com%2Fwatch%3Fv=Ch4RQPG1Tmo
             lyricId: 52063,
             lyricDiffId: 5149,
@@ -283,6 +287,7 @@ export class GameScene extends Container implements IScene {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121403/history
             beatId: 3953761,
+            chordId: 2130375,
             repetitiveSegmentId: 2099586,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FN--x%2F20210204215604
             lyricId: 52094,
