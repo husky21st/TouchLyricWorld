@@ -221,7 +221,7 @@ export class GameScene extends Container implements IScene {
         this._player.createFromSongUrl('https://piapro.jp/t/FDb1/20210213190029', {
           video: {
             // 音楽地図訂正履歴: https://songle.jp/songs/2121525/history
-            beatId: 3953882,
+            beatId: 3996956,
             repetitiveSegmentId: 2099561,
             // 歌詞タイミング訂正履歴: https://textalive.jp/lyrics/piapro.jp%2Ft%2FFDb1%2F20210213190029
             lyricId: 52065,
