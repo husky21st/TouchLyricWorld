@@ -5,7 +5,7 @@
 
 **追記**  
 「マジカルミライ2021」プログラミング・コンテストに入選しました!!  
-[こちら](https://magicalmirai.com/2021/procon/entry.html#entry_no05)で是非遊んでください!!
+[こちら](https://magicalmirai.com/2021/procon/entry.html#entry_no05)で是非遊んでみてください!!
 
 ## 内容
 
