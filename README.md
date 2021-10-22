@@ -31,14 +31,26 @@
 ```
 git clone git@github.com:husky21st/TouchLyricWorld.git
 cd TouchLyricWorld
+touch .env
+echo 'NEXT_PUBLIC_API_TOKEN = YourToken' >> .env
 npm i .
 npm run dev
 ```
+
+\* GitHub PagesではGitHub上でSecrets情報の登録を行なっています
 
 ### ビルド
 
 ```
 npm run build
+```
+
+## 主要ライブラリ
+
+```
+PixiJS
+GSAP 3
+TextAlive App API
 ```
 
 ## TextAlive App API
@@ -58,4 +70,3 @@ TextAlive App API について詳しくはWebサイト [TextAlive for Developers
 ## 注意事項
 
 画像素材の改変，二次配布は固く禁じます.
-
