@@ -1,5 +1,5 @@
 # TouchLyricWorld
-![demoOutPut](https://user-images.githubusercontent.com/68993961/135465467-e0b4f60d-939b-42bb-b1d9-5fd3a01a4d3f.gif)
+![output](https://user-images.githubusercontent.com/68993961/139785948-29e8d6d1-882c-476b-85a0-556c4676060c.gif)
 
 **歌詞と触れ合う**をコンセプトにしたリズムゲームです.
 
