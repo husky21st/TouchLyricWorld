@@ -1,11 +1,9 @@
 # TouchLyricWorld
 ![output](https://user-images.githubusercontent.com/68993961/139785948-29e8d6d1-882c-476b-85a0-556c4676060c.gif)
 
-**歌詞と触れ合う**をコンセプトにしたリズムゲームです.
+## [初音ミク「マジカルミライ2021」プログラミング・コンテスト](https://magicalmirai.com/2021/procon/)応募作品
 
-**追記**  
-「マジカルミライ2021」プログラミング・コンテストに入選しました!!  
-[こちら](https://magicalmirai.com/2021/procon/entry.html#entry_no05)で是非遊んでみてください!!
+**歌詞に楽しく触れる**をコンセプトにしたリズムゲームです.
 
 ## 内容
 
