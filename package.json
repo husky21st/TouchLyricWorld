@@ -19,7 +19,7 @@
   "dependencies": {
     "gsap": "^3.8.0",
     "memory-cache": "^0.2.0",
-    "next": "11.1.2",
+    "next": "12.1.0",
     "pixi-webfont-loader": "^1.0.2",
     "pixi.js": "^6.1.3",
     "react": "17.0.2",
